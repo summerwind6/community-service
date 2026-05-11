@@ -1,0 +1,61 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: community-service-system
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/community_service?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false
+    username: root
+    password: root
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:
+      database: 0
+
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  type-aliases-package: com.community.entity.po
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+shiro:
+  web:
+    enabled: true
+  loginUrl: /api/auth/login
+  successUrl: /api/dashboard
+  unauthorizedUrl: /api/auth/unauthorized
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+  info:
+    title: 社区便民服务申请与进度管理系统API
+    description: 政企简化版 - 接口文档
+    version: 1.0.0
+
+jwt:
+  secret: community-service-secret-key-2024
+  expiration: 86400000
