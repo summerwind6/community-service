@@ -2,7 +2,9 @@
   <div class="page-container">
     <el-card shadow="hover">
       <template #header>
-        <span>用户管理</span>
+        <div class="card-header">
+          <span>用户管理</span>
+        </div>
       </template>
 
       <div class="search-form">
@@ -24,7 +26,7 @@
       </div>
 
       <div style="margin-bottom: 16px;">
-        <el-button type="primary" icon="Plus">新增用户</el-button>
+        <el-button type="primary" icon="Plus" @click="userFormDialog.open(null)">新增用户</el-button>
       </div>
 
       <el-table :data="tableData" border stripe v-loading="loading">
@@ -43,8 +45,8 @@
         <el-table-column prop="createTime" label="创建时间" width="180" />
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
-            <el-button type="primary" link size="small">编辑</el-button>
-            <el-button type="danger" link size="small">删除</el-button>
+            <el-button type="primary" link size="small" @click="userFormDialog.open(row)">编辑</el-button>
+            <el-button type="danger" link size="small" @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -61,18 +63,24 @@
         />
       </div>
     </el-card>
+
+    <UserFormDialog ref="userFormDialog" @success="loadData" />
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { getUserList } from '@/api/user/user'
+import { updateUser } from '@/api/user/user'
+import UserFormDialog from '@/components/UserFormDialog.vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 const loading = ref(false)
 const tableData = ref([])
 const total = ref(0)
 const pageNum = ref(1)
 const pageSize = ref(10)
+const userFormDialog = ref()
 
 const searchForm = reactive({
   keyword: '',
@@ -89,8 +97,8 @@ async function loadData() {
     })
     tableData.value = res.data?.records || []
     total.value = res.data?.total || 0
-  } catch (error) {
-    console.error('加载用户列表失败：', error)
+  } catch {
+    // handled by interceptor
   } finally {
     loading.value = false
   }
@@ -108,9 +116,25 @@ function resetSearch() {
   loadData()
 }
 
+function handleDelete(row) {
+  ElMessageBox.confirm(`确定删除用户「${row.username}」吗？删除后不可恢复`, '确认删除', {
+    type: 'warning'
+  }).then(async () => {
+    await updateUser({ id: row.id, status: 0 })
+    ElMessage.success('已禁用该用户')
+    loadData()
+  }).catch(() => {})
+}
+
 onMounted(() => {
   loadData()
 })
 </script>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+</style>
