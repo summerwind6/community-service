@@ -248,7 +248,7 @@ INSERT INTO `sys_role_perm` (`role_id`, `perm_id`) VALUES
 -- 插入默认超级管理员账号
 -- 密码: admin123 (使用Shiro MD5加密，盐值随机)
 INSERT INTO `sys_user` (`username`, `password`, `salt`, `real_name`, `phone`, `email`, `status`) VALUES
-('admin', 'e10adc3949ba59abbe56e057f20f883e', 'salt123', '超级管理员', '13800138000', 'admin@community.com', 1);
+('admin', '82d1d187ddcfbf1ba740510f28308c26', 'salt123', '超级管理员', '13800138000', 'admin@community.com', 1);
 
 -- 为管理员分配角色
 INSERT INTO `sys_user_role` (`user_id`, `role_id`) VALUES (1, 1);

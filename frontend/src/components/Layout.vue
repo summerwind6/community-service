@@ -2,7 +2,7 @@
   <el-container class="layout-container">
     <el-aside :width="isCollapse ? '64px' : '220px'" class="aside">
       <div class="logo">
-        <img src="@/assets/logo.png" alt="logo" v-if="!isCollapse" />
+        <el-icon :size="28" color="#fff"><HomeFilled /></el-icon>
         <span v-show="!isCollapse">社区便民服务</span>
       </div>
       <el-menu
@@ -24,6 +24,7 @@
             <span>系统管理</span>
           </template>
           <el-menu-item index="/system/user">用户管理</el-menu-item>
+          <el-menu-item index="/system/role">角色管理</el-menu-item>
         </el-sub-menu>
 
         <el-sub-menu index="/service">
@@ -73,6 +74,7 @@
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item command="profile">个人中心</el-dropdown-item>
+                <el-dropdown-item command="changePassword">修改密码</el-dropdown-item>
                 <el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
               </el-dropdown-menu>
             </template>
@@ -101,7 +103,11 @@ function toggleCollapse() {
 }
 
 async function handleCommand(command) {
-  if (command === 'logout') {
+  if (command === 'profile') {
+    router.push('/profile')
+  } else if (command === 'changePassword') {
+    router.push('/profile/change-password')
+  } else if (command === 'logout') {
     await userStore.logout()
     router.push('/login')
   }

@@ -10,7 +10,7 @@ export const useUserStore = defineStore('user', () => {
   async function login(loginForm) {
     try {
       const res = await loginApi(loginForm)
-      token.value = 'session-token'
+      token.value = res.data.token || 'session-token'
       userInfo.value = res.data.user
       localStorage.setItem('token', token.value)
       localStorage.setItem('userInfo', JSON.stringify(userInfo.value))

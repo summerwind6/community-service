@@ -21,3 +21,19 @@ export function getUserInfo() {
     method: 'get'
   })
 }
+
+export function changePassword(data) {
+  return request({
+    url: '/auth/change-password',
+    method: 'put',
+    data
+  })
+}
+
+export function updateProfile(data) {
+  return request({
+    url: '/auth/profile',
+    method: 'put',
+    data
+  })
+}
