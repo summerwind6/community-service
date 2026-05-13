@@ -12,7 +12,7 @@ public interface SysUserService extends IService<SysUser> {
 
     LoginVO login(String username, String password);
 
-    void register(UserDTO userDTO);
+    void register(UserDTO userDTO, Long roleId);
 
     UserVO getUserInfo(Long id);
 

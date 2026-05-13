@@ -15,11 +15,12 @@ export function getUserDetail(id) {
   })
 }
 
-export function addUser(data) {
+export function addUser(data, params) {
   return request({
     url: '/user',
     method: 'post',
-    data
+    data,
+    params
   })
 }
 
@@ -28,5 +29,12 @@ export function updateUser(data) {
     url: '/user',
     method: 'put',
     data
+  })
+}
+
+export function deleteUser(id) {
+  return request({
+    url: `/user/${id}`,
+    method: 'delete'
   })
 }

@@ -70,8 +70,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { getUserList } from '@/api/user/user'
-import { updateUser } from '@/api/user/user'
+import { getUserList, deleteUser } from '@/api/user/user'
 import UserFormDialog from '@/components/UserFormDialog.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -120,8 +119,8 @@ function handleDelete(row) {
   ElMessageBox.confirm(`确定删除用户「${row.username}」吗？删除后不可恢复`, '确认删除', {
     type: 'warning'
   }).then(async () => {
-    await updateUser({ id: row.id, status: 0 })
-    ElMessage.success('已禁用该用户')
+    await deleteUser(row.id)
+    ElMessage.success('删除成功')
     loadData()
   }).catch(() => {})
 }

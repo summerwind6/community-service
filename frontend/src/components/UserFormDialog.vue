@@ -12,6 +12,16 @@
       <el-form-item v-if="!isEdit" label="密码" prop="password">
         <el-input v-model="form.password" type="password" show-password placeholder="请输入密码（6-20位）" />
       </el-form-item>
+      <el-form-item v-if="!isEdit" label="角色" prop="roleId">
+        <el-select v-model="form.roleId" placeholder="请选择角色" style="width: 100%;">
+          <el-option
+            v-for="role in roleList"
+            :key="role.id"
+            :label="role.roleName"
+            :value="role.id"
+          />
+        </el-select>
+      </el-form-item>
       <el-form-item label="真实姓名" prop="realName">
         <el-input v-model="form.realName" placeholder="请输入真实姓名" />
       </el-form-item>
@@ -33,8 +43,9 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive } from 'vue'
 import { addUser, updateUser } from '@/api/user/user'
+import { getRoleList } from '@/api/auth/role'
 
 const emit = defineEmits(['success'])
 const visible = ref(false)
@@ -42,10 +53,12 @@ const isEdit = ref(false)
 const submitting = ref(false)
 const editId = ref(null)
 const formRef = ref()
+const roleList = ref([])
 
 const form = reactive({
   username: '',
   password: '',
+  roleId: null,
   realName: '',
   phone: '',
   email: '',
@@ -61,10 +74,11 @@ const rules = {
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 6, max: 20, message: '密码长度在6-20位之间', trigger: 'blur' }
   ],
+  roleId: [{ required: true, message: '请选择角色', trigger: 'change' }],
   realName: [{ required: true, message: '请输入真实姓名', trigger: 'blur' }]
 }
 
-function open(row) {
+async function open(row) {
   if (row) {
     isEdit.value = true
     editId.value = row.id
@@ -78,10 +92,17 @@ function open(row) {
     editId.value = null
     form.username = ''
     form.password = ''
+    form.roleId = null
     form.realName = ''
     form.phone = ''
     form.email = ''
     form.status = 1
+    try {
+      const res = await getRoleList()
+      roleList.value = res.data || []
+    } catch {
+      roleList.value = []
+    }
   }
   visible.value = true
 }
@@ -93,9 +114,9 @@ async function handleSubmit() {
     submitting.value = true
     try {
       if (isEdit.value) {
-        await updateUser({ id: editId.value, ...form })
+        await updateUser({ id: editId.value, realName: form.realName, phone: form.phone, email: form.email, status: form.status })
       } else {
-        await addUser(form)
+        await addUser(form, { params: { roleId: form.roleId } })
       }
       visible.value = false
       emit('success')
