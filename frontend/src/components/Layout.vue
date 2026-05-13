@@ -33,6 +33,7 @@
             <el-icon><Document /></el-icon>
             <span>服务管理</span>
           </template>
+          <el-menu-item index="/resident/list">居民管理</el-menu-item>
           <el-menu-item index="/service/item">服务项目</el-menu-item>
         </el-sub-menu>
 
