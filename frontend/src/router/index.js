@@ -31,6 +31,12 @@ const routes = [
         meta: { title: '角色管理', icon: 'Avatar' }
       },
       {
+        path: 'system/config',
+        name: 'SystemConfig',
+        component: () => import('@/views/system/ConfigView.vue'),
+        meta: { title: '系统配置', icon: 'Tools' }
+      },
+      {
         path: 'service/item',
         name: 'ServiceItem',
         component: () => import('@/views/service/ServiceItem.vue'),

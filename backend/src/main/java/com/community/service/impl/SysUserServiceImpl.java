@@ -6,11 +6,15 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.community.common.BusinessException;
 import com.community.entity.dto.PageDTO;
 import com.community.entity.dto.UserDTO;
+import com.community.entity.po.SysRole;
 import com.community.entity.po.SysUser;
+import com.community.entity.po.SysUserRole;
 import com.community.entity.vo.LoginVO;
 import com.community.entity.vo.PageVO;
 import com.community.entity.vo.UserVO;
+import com.community.mapper.SysRoleMapper;
 import com.community.mapper.SysUserMapper;
+import com.community.mapper.SysUserRoleMapper;
 import com.community.service.SysUserService;
 import com.community.shiro.PasswordUtil;
 import com.community.util.JwtTokenUtil;
@@ -23,11 +27,21 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @Service
 public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> implements SysUserService {
 
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
+
+    @Autowired
+    private SysUserRoleMapper sysUserRoleMapper;
+
+    @Autowired
+    private SysRoleMapper sysRoleMapper;
 
     @Override
     public LoginVO login(String username, String password) {
@@ -60,7 +74,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
-    public void register(UserDTO userDTO) {
+    public void register(UserDTO userDTO, Long roleId) {
         LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysUser::getUsername, userDTO.getUsername());
         if (count(wrapper) > 0) {
@@ -74,6 +88,13 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         user.setPassword(PasswordUtil.encrypt(userDTO.getPassword(), salt));
         user.setStatus(1);
         save(user);
+
+        if (roleId != null) {
+            SysUserRole userRole = new SysUserRole();
+            userRole.setUserId(user.getId());
+            userRole.setRoleId(roleId);
+            sysUserRoleMapper.insert(userRole);
+        }
     }
 
     @Override
@@ -162,6 +183,15 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         BeanUtils.copyProperties(user, vo);
         vo.setPassword(null);
         vo.setSalt(null);
+
+        LambdaQueryWrapper<SysUserRole> urWrapper = new LambdaQueryWrapper<>();
+        urWrapper.eq(SysUserRole::getUserId, user.getId());
+        List<SysUserRole> userRoles = sysUserRoleMapper.selectList(urWrapper);
+        if (!userRoles.isEmpty()) {
+            List<Long> roleIds = userRoles.stream().map(SysUserRole::getRoleId).toList();
+            List<SysRole> roles = sysRoleMapper.selectBatchIds(roleIds);
+            vo.setRoles(roles.stream().map(SysRole::getRoleCode).collect(Collectors.toSet()));
+        }
         return vo;
     }
 }

@@ -42,8 +42,8 @@ public class UserController {
     @Operation(summary = "新增用户")
     @RequiresPermissions("user:add")
     @PostMapping
-    public Result<Void> add(@RequestBody UserDTO userDTO) {
-        sysUserService.register(userDTO);
+    public Result<Void> add(@RequestBody UserDTO userDTO, @RequestParam(required = false) Long roleId) {
+        sysUserService.register(userDTO, roleId);
         return Result.success();
     }
 
@@ -53,5 +53,13 @@ public class UserController {
     public Result<UserVO> update(@RequestBody UserDTO userDTO) {
         UserVO userVO = sysUserService.updateUser(userDTO);
         return Result.success(userVO);
+    }
+
+    @Operation(summary = "删除用户")
+    @RequiresPermissions("user:update")
+    @DeleteMapping("/{id}")
+    public Result<Void> delete(@PathVariable Long id) {
+        sysUserService.removeById(id);
+        return Result.success();
     }
 }
