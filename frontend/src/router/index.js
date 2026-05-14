@@ -37,6 +37,12 @@ const routes = [
         meta: { title: '系统配置', icon: 'Tools' }
       },
       {
+        path: 'resident/list',
+        name: 'ResidentManage',
+        component: () => import('@/views/resident/ResidentManage.vue'),
+        meta: { title: '居民管理', icon: 'User' }
+      },
+      {
         path: 'service/item',
         name: 'ServiceItem',
         component: () => import('@/views/service/ServiceItem.vue'),
