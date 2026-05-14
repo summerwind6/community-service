@@ -41,7 +41,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import * as echarts from 'echarts'
-import { getDashboardData } from '@/api/stat/stat'
+import { getDashboardData, getTrendData, getDistributionData } from '@/api/stat/stat'
 
 const trendChartRef = ref()
 const pieChartRef = ref()
@@ -49,7 +49,7 @@ let trendChart = null
 let pieChart = null
 
 const statCards = ref([
-  { title: '总用户数', value: 0, icon: 'User', iconClass: 'icon-blue' },
+  { title: '系统用户', value: 0, icon: 'User', iconClass: 'icon-blue' },
   { title: '总申请数', value: 0, icon: 'Document', iconClass: 'icon-green' },
   { title: '待审核', value: 0, icon: 'Clock', iconClass: 'icon-orange' },
   { title: '今日完成', value: 0, icon: 'CircleCheck', iconClass: 'icon-red' }
@@ -64,8 +64,8 @@ async function loadDashboardData() {
       statCards.value[2].value = res.data.pendingAudit || 0
       statCards.value[3].value = res.data.completedToday || 0
     }
-  } catch (error) {
-    console.error('加载仪表盘数据失败：', error)
+  } catch {
+    // handled by interceptor
   }
 }
 
@@ -74,16 +74,13 @@ function initCharts() {
     trendChart = echarts.init(trendChartRef.value)
     trendChart.setOption({
       tooltip: { trigger: 'axis' },
-      xAxis: {
-        type: 'category',
-        data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
-      },
-      yAxis: { type: 'value' },
+      xAxis: { type: 'category', data: [] },
+      yAxis: { type: 'value', minInterval: 1 },
       series: [{
         name: '申请数量',
         type: 'line',
         smooth: true,
-        data: [0, 0, 0, 0, 0, 0, 0],
+        data: [],
         areaStyle: { opacity: 0.3 }
       }]
     })
@@ -97,11 +94,34 @@ function initCharts() {
       series: [{
         type: 'pie',
         radius: ['40%', '70%'],
-        avoidLabelOverlap: false,
-        label: { show: true, formatter: '{b}: {c} ({d}%)' },
+        label: { show: true, formatter: '{b}\n{d}%' },
         data: []
       }]
     })
+  }
+}
+
+async function loadChartsData() {
+  try {
+    const [trendRes, distRes] = await Promise.all([
+      getTrendData(),
+      getDistributionData()
+    ])
+    if (trendChart && trendRes.data) {
+      trendChart.setOption({
+        xAxis: { data: trendRes.data.dates || [] },
+        series: [{ data: trendRes.data.counts || [] }]
+      })
+    }
+    if (pieChart && distRes.data) {
+      const pieData = (distRes.data.categories || []).map((name, i) => ({
+        name,
+        value: (distRes.data.values || [])[i] || 0
+      }))
+      pieChart.setOption({ series: [{ data: pieData }] })
+    }
+  } catch {
+    // handled by interceptor
   }
 }
 
@@ -111,8 +131,9 @@ function handleResize() {
 }
 
 onMounted(() => {
-  loadDashboardData()
   initCharts()
+  loadDashboardData()
+  loadChartsData()
   window.addEventListener('resize', handleResize)
 })
 
