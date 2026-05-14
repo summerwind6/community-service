@@ -43,6 +43,12 @@ public class ApplyController {
         return Result.success(applicationFormService.getApplicationList(pageDTO));
     }
 
+    @Operation(summary = "居民进度查询（免登录，手机号查申请）")
+    @GetMapping("/progress")
+    public Result<List<ApplicationForm>> progress(@RequestParam String phone) {
+        return Result.success(applicationFormService.getApplicationsByPhone(phone));
+    }
+
     @Operation(summary = "获取申请详情")
     @GetMapping("/{id}")
     public Result<ApplicationForm> detail(@PathVariable Long id) {

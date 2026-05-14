@@ -25,5 +25,8 @@ public interface ApplicationFormService extends IService<ApplicationForm> {
     /** 查询申请单的审核记录 */
     List<AuditRecord> getAuditRecords(Long applicationId);
 
+    /** 根据居民手机号查询申请进度（免登录） */
+    List<ApplicationForm> getApplicationsByPhone(String phone);
+
     void updateStatus(Long id, String status);
 }

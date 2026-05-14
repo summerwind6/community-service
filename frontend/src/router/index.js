@@ -75,6 +75,12 @@ const routes = [
     ]
   },
   {
+    path: '/progress',
+    name: 'ProgressQuery',
+    component: () => import('@/views/apply/ProgressQuery.vue'),
+    meta: { title: '申请进度查询', requiresAuth: false }
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/login'
   }
@@ -88,7 +94,7 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
 
-  if (to.path === '/login') {
+  if (to.path === '/login' || to.path === '/progress') {
     next()
     return
   }

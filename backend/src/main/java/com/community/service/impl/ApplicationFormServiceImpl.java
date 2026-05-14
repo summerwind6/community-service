@@ -173,6 +173,18 @@ public class ApplicationFormServiceImpl extends ServiceImpl<ApplicationFormMappe
     }
 
     @Override
+    public List<ApplicationForm> getApplicationsByPhone(String phone) {
+        ResidentInfo resident = residentInfoService.getResidentByPhone(phone);
+        if (resident == null) {
+            return List.of();
+        }
+        LambdaQueryWrapper<ApplicationForm> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(ApplicationForm::getResidentId, resident.getId())
+                .orderByDesc(ApplicationForm::getCreateTime);
+        return list(wrapper);
+    }
+
+    @Override
     public void updateStatus(Long id, String status) {
         ApplicationForm form = getById(id);
         if (form != null) {
