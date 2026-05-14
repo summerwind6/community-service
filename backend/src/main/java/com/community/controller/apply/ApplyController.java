@@ -1,48 +1,84 @@
 package com.community.controller.apply;
 
 import com.community.common.Result;
+import com.community.entity.dto.PageDTO;
 import com.community.entity.po.ApplicationForm;
-import com.community.service.impl.ApplicationFormServiceImpl;
+import com.community.entity.po.AuditRecord;
+import com.community.entity.vo.PageVO;
+import com.community.entity.vo.UserVO;
+import com.community.service.ApplicationFormService;
+import com.community.service.SysUserService;
+import com.community.util.ShiroUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "申请管理", description = "便民服务申请单处理")
+import java.util.List;
+import java.util.Map;
+
+@Tag(name = "申请管理", description = "便民服务申请提交、审核流转")
 @RestController
 @RequestMapping("/apply")
 public class ApplyController {
 
     @Autowired
-    private ApplicationFormServiceImpl applicationFormService;
+    private ApplicationFormService applicationFormService;
+
+    @Autowired
+    private SysUserService sysUserService;
 
     @Operation(summary = "提交申请")
     @PostMapping
-    public Result<ApplicationForm> submit(@RequestBody ApplicationForm applicationForm) {
-        applicationFormService.save(applicationForm);
-        return Result.success(applicationForm);
+    public Result<ApplicationForm> submit(@RequestBody ApplicationForm form) {
+        return Result.success(applicationFormService.submitApplication(form));
     }
 
-    @Operation(summary = "获取我的申请列表")
-    @GetMapping("/my")
-    public Result<?> myApplyList() {
-        return Result.success(applicationFormService.list());
-    }
-
-    @Operation(summary = "获取所有申请列表（管理员）")
+    @Operation(summary = "获取申请列表（分页+筛选）")
     @RequiresPermissions("apply:list")
     @GetMapping("/list")
-    public Result<?> list() {
-        return Result.success(applicationFormService.list());
+    public Result<PageVO<ApplicationForm>> list(PageDTO pageDTO,
+                                                 @RequestParam(required = false) String status) {
+        return Result.success(applicationFormService.getApplicationList(pageDTO));
     }
 
-    @Operation(summary = "审核申请")
+    @Operation(summary = "获取申请详情")
+    @GetMapping("/{id}")
+    public Result<ApplicationForm> detail(@PathVariable Long id) {
+        return Result.success(applicationFormService.getApplicationDetail(id));
+    }
+
+    @Operation(summary = "获取申请的审核记录")
+    @GetMapping("/{id}/audit-records")
+    public Result<List<AuditRecord>> auditRecords(@PathVariable Long id) {
+        return Result.success(applicationFormService.getAuditRecords(id));
+    }
+
+    @Operation(summary = "初审（社区受理员）PENDING→PROCESSING/REJECTED")
     @RequiresPermissions("apply:audit")
-    @PutMapping("/audit/{id}")
-    public Result<Void> audit(@PathVariable Long id, @RequestBody ApplicationForm applicationForm) {
-        applicationForm.setId(id);
-        applicationFormService.updateById(applicationForm);
+    @PostMapping("/{id}/review")
+    public Result<Void> review(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        String result = body.get("result");
+        String opinion = body.getOrDefault("opinion", "");
+        UserVO user = getCurrentUser();
+        applicationFormService.reviewApplication(id, result, opinion, user.getId(), user.getRealName());
         return Result.success();
+    }
+
+    @Operation(summary = "复审（街道审核员）PROCESSING→COMPLETED/REJECTED")
+    @RequiresPermissions("apply:audit")
+    @PostMapping("/{id}/approve")
+    public Result<Void> approve(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        String result = body.get("result");
+        String opinion = body.getOrDefault("opinion", "");
+        UserVO user = getCurrentUser();
+        applicationFormService.approveApplication(id, result, opinion, user.getId(), user.getRealName());
+        return Result.success();
+    }
+
+    private UserVO getCurrentUser() {
+        String username = ShiroUtils.getCurrentUsername();
+        return sysUserService.getUserInfoByUsername(username);
     }
 }
