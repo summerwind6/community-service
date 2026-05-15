@@ -1,57 +1,61 @@
 <template>
   <div class="progress-page">
-    <div class="query-card">
-      <h2>申请进度查询</h2>
-      <p class="subtitle">输入登记的手机号，查看您的便民服务申请进度</p>
-
-      <el-form :inline="true" class="query-form">
-        <el-form-item>
-          <el-input
-            v-model="phone"
-            placeholder="请输入手机号码"
-            :prefix-icon="Phone"
-            size="large"
-            style="width: 280px"
-            maxlength="11"
-            @keyup.enter="handleQuery"
-          />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" size="large" :loading="querying" @click="handleQuery">
-            查询
-          </el-button>
-        </el-form-item>
-      </el-form>
-
-      <div v-if="searched && applications.length === 0" class="empty-result">
-        <el-empty description="未找到相关申请记录">
-          <template #image>
-            <el-icon :size="60" color="#C0C4CC"><Document /></el-icon>
-          </template>
-        </el-empty>
+    <div class="progress-wrapper">
+      <div class="progress-brand">
+        <el-icon :size="48" color="#409EFF"><HomeFilled /></el-icon>
+        <h1>社区便民服务</h1>
+        <p>申请进度查询</p>
       </div>
 
-      <div v-if="applications.length > 0" class="result-list">
-        <h3>共找到 {{ applications.length }} 条申请记录</h3>
-        <el-card
-          v-for="app in applications" :key="app.id"
-          shadow="hover"
-          class="apply-item"
-        >
-          <div class="apply-header">
-            <span class="apply-no">{{ app.applyNo }}</span>
-            <el-tag :type="statusMap[app.status]?.type || 'info'">
-              {{ statusMap[app.status]?.text || app.status }}
-            </el-tag>
-          </div>
-          <el-descriptions :column="2" border size="small">
-            <el-descriptions-item label="服务项目">{{ app.serviceItemName }}</el-descriptions-item>
-            <el-descriptions-item label="费用">¥{{ app.fee }}</el-descriptions-item>
-            <el-descriptions-item label="申请时间">{{ app.createTime }}</el-descriptions-item>
-            <el-descriptions-item label="处理人">{{ app.handlerName || '-' }}</el-descriptions-item>
-            <el-descriptions-item v-if="app.remark" label="备注" :span="2">{{ app.remark }}</el-descriptions-item>
-          </el-descriptions>
-        </el-card>
+      <el-card class="query-card" shadow="always">
+        <h3>输入手机号查询申请进度</h3>
+
+        <div class="query-form">
+          <el-input
+            v-model="phone"
+            placeholder="请输入登记的手机号码"
+            :prefix-icon="Phone"
+            size="large"
+            style="width: 300px"
+            maxlength="11"
+            clearable
+            @keyup.enter="handleQuery"
+          />
+          <el-button type="primary" size="large" :loading="querying" @click="handleQuery">
+            <el-icon><Search /></el-icon> 查询
+          </el-button>
+        </div>
+
+        <div v-if="searched" class="result-section">
+          <el-divider />
+          <h4 v-if="applications.length > 0">共找到 {{ applications.length }} 条申请记录</h4>
+
+          <el-card
+            v-for="app in applications" :key="app.id"
+            shadow="hover"
+            class="apply-item"
+          >
+            <div class="apply-header">
+              <span class="apply-no">{{ app.applyNo }}</span>
+              <el-tag :type="statusMap[app.status]?.type || 'info'">
+                {{ statusMap[app.status]?.text || app.status }}
+              </el-tag>
+            </div>
+            <el-descriptions :column="2" border size="small">
+              <el-descriptions-item label="服务项目">{{ app.serviceItemName }}</el-descriptions-item>
+              <el-descriptions-item label="费用">¥{{ app.fee }}</el-descriptions-item>
+              <el-descriptions-item label="申请时间">{{ app.createTime }}</el-descriptions-item>
+              <el-descriptions-item label="处理人">{{ app.handlerName || '-' }}</el-descriptions-item>
+              <el-descriptions-item v-if="app.remark" label="备注" :span="2">{{ app.remark }}</el-descriptions-item>
+            </el-descriptions>
+          </el-card>
+
+          <el-empty v-if="applications.length === 0" description="未找到相关申请记录" />
+        </div>
+      </el-card>
+
+      <div class="progress-footer">
+        <el-button text @click="$router.push('/login')">管理员登录</el-button>
       </div>
     </div>
   </div>
@@ -88,10 +92,9 @@ async function handleQuery() {
     if (applications.value.length === 0) {
       ElMessage.info('未找到相关申请记录')
     }
-  } catch (error) {
+  } catch {
     applications.value = []
     searched.value = true
-    // 401 from Shiro for this endpoint shouldn't happen since it's anon
     ElMessage.error('查询失败，请稍后重试')
   } finally {
     querying.value = false
@@ -102,46 +105,54 @@ async function handleQuery() {
 <style scoped lang="scss">
 .progress-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
-  justify-content: center;
   align-items: flex-start;
+  justify-content: center;
+  background-color: #f0f2f5;
   padding: 60px 20px;
 }
 
-.query-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 40px;
+.progress-wrapper {
   width: 100%;
   max-width: 700px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
 
-  h2 {
-    text-align: center;
-    margin-bottom: 8px;
+.progress-brand {
+  text-align: center;
+  margin-bottom: 32px;
+
+  h1 {
+    font-size: 26px;
     color: #303133;
+    margin: 12px 0 4px;
+    font-weight: 600;
   }
 
-  .subtitle {
-    text-align: center;
+  p {
+    font-size: 14px;
     color: #909399;
-    margin-bottom: 30px;
+  }
+}
+
+.query-card {
+  h3 {
+    text-align: center;
+    margin-bottom: 24px;
+    color: #303133;
+    font-size: 18px;
   }
 
   .query-form {
     display: flex;
     justify-content: center;
+    align-items: center;
+    gap: 12px;
   }
 
-  .empty-result {
-    margin-top: 20px;
-  }
+  .result-section {
+    margin-top: 8px;
 
-  .result-list {
-    margin-top: 20px;
-
-    h3 {
+    h4 {
       margin-bottom: 16px;
       color: #606266;
       font-size: 15px;
@@ -159,9 +170,15 @@ async function handleQuery() {
         .apply-no {
           font-weight: bold;
           color: #409EFF;
+          font-size: 14px;
         }
       }
     }
   }
+}
+
+.progress-footer {
+  text-align: center;
+  margin-top: 24px;
 }
 </style>
