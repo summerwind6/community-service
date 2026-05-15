@@ -155,7 +155,23 @@ git push origin dev
 
 ---
 
-## 七、开发节奏总结
+**仅推送指定文件**（本次更新 README + 文档）：
+
+```bash
+# 方式：正常 add + commit + push，Git 只推送该 commit 包含的文件变更
+git add docs/git_commands.md README.md
+git commit -m "文档：更新README API列表+功能模块，Git命令记录完整版"
+git push origin dev
+
+# 推送前确认本次 push 包含哪些提交（本地领先远程的提交）
+git log origin/dev..HEAD --oneline
+```
+
+**解析**：Git push 推送的是整个分支的提交链，不是特定文件。但通过只 `git add` 目标文件，该 commit 仅包含这些文件的变更，不影响其他文件的工作区状态。
+
+---
+
+## 八、开发节奏总结
 
 | 序号 | 提交 | 阶段 |
 |------|------|------|
@@ -167,5 +183,7 @@ git push origin dev
 | 6 | `2f411f3` | Bug 修复：状态筛选 |
 | 7 | `10d423c` | 收尾：全局样式 + 调试清理 |
 | 8 | `2135aaf` | 收尾：Login/Progress 样式统一 |
+| 9 | `01cfe43` | 文档：Git 命令记录与解析 |
+| 10 | `17c49f3` | 文档：更新 README API 列表 + 功能模块 |
 
 > **流程**：每阶段先本地开发 → 编译验证 → `git add` + `git commit` → 用户测试 → `git push origin dev`
