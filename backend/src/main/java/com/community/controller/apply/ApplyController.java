@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,6 +30,12 @@ public class ApplyController {
     @Autowired
     private SysUserService sysUserService;
 
+    /** 禁止 status 绑定到 PageDTO（PageDTO.status 是 Integer，申请状态是 String） */
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+        binder.setDisallowedFields("status");
+    }
+
     @Operation(summary = "提交申请")
     @PostMapping
     public Result<ApplicationForm> submit(@RequestBody ApplicationForm form) {
@@ -40,7 +47,7 @@ public class ApplyController {
     @GetMapping("/list")
     public Result<PageVO<ApplicationForm>> list(PageDTO pageDTO,
                                                  @RequestParam(required = false) String status) {
-        return Result.success(applicationFormService.getApplicationList(pageDTO));
+        return Result.success(applicationFormService.getApplicationList(pageDTO, status));
     }
 
     @Operation(summary = "居民进度查询（免登录，手机号查申请）")

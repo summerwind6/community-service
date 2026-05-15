@@ -14,7 +14,7 @@ public interface ApplicationFormService extends IService<ApplicationForm> {
 
     ApplicationForm getApplicationDetail(Long id);
 
-    PageVO<ApplicationForm> getApplicationList(PageDTO pageDTO);
+    PageVO<ApplicationForm> getApplicationList(PageDTO pageDTO, String status);
 
     /** 初审：社区受理员  PENDING → PROCESSING 或 REJECTED */
     void reviewApplication(Long id, String result, String opinion, Long auditorId, String auditorName);

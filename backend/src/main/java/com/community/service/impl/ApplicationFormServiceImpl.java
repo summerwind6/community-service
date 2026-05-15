@@ -73,21 +73,17 @@ public class ApplicationFormServiceImpl extends ServiceImpl<ApplicationFormMappe
     }
 
     @Override
-    public PageVO<ApplicationForm> getApplicationList(PageDTO pageDTO) {
+    public PageVO<ApplicationForm> getApplicationList(PageDTO pageDTO, String status) {
         Page<ApplicationForm> page = new Page<>(pageDTO.getPageNum(), pageDTO.getPageSize());
         LambdaQueryWrapper<ApplicationForm> wrapper = new LambdaQueryWrapper<>();
-        // 关键词搜索：申请编号、申请人姓名、服务项目名称
         if (pageDTO.getKeyword() != null && !pageDTO.getKeyword().isEmpty()) {
             wrapper.and(w -> w.like(ApplicationForm::getApplyNo, pageDTO.getKeyword())
                     .or().like(ApplicationForm::getResidentName, pageDTO.getKeyword())
                     .or().like(ApplicationForm::getServiceItemName, pageDTO.getKeyword()));
         }
-        // 状态筛选
-        if (pageDTO.getStatus() != null) {
-            // PageDTO.status is Integer, but ApplicationForm.status is String
-            // We'll use a custom approach: if status is passed as String via another field
+        if (status != null && !status.isEmpty()) {
+            wrapper.eq(ApplicationForm::getStatus, status);
         }
-        // 时间范围
         if (pageDTO.getStartTime() != null) {
             wrapper.ge(ApplicationForm::getCreateTime, pageDTO.getStartTime());
         }
