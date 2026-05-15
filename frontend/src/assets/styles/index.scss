@@ -8,6 +8,8 @@ html, body {
   width: 100%;
   height: 100%;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color: #303133;
+  background-color: #f0f2f5;
 }
 
 #app {
@@ -22,12 +24,10 @@ a {
 
 .page-container {
   padding: 20px;
-  background-color: #fff;
-  border-radius: 4px;
 }
 
 .search-form {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .pagination-container {

@@ -100,11 +100,7 @@ const router = useRouter()
 const userStore = useUserStore()
 const isCollapse = ref(false)
 
-onMounted(() => {
-  console.log('[Layout] roles:', userStore.roles)
-  console.log('[Layout] hasRole ADMIN:', userStore.hasRole('ADMIN'))
-  console.log('[Layout] userInfo.roles:', userStore.userInfo?.roles)
-})
+onMounted(() => {})
 
 function toggleCollapse() {
   isCollapse.value = !isCollapse.value
