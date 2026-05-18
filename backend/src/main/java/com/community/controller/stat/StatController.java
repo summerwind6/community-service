@@ -53,29 +53,56 @@ public class StatController {
         return Result.success(data);
     }
 
-    @Operation(summary = "申请趋势统计（近7天）")
+    @Operation(summary = "申请量与办结量趋势（周/月）")
     @RequiresPermissions("stat:trend")
     @GetMapping("/trend")
-    public Result<Map<String, Object>> trend() {
+    public Result<Map<String, Object>> trend(@RequestParam(defaultValue = "week") String period) {
         LocalDate today = LocalDate.now();
         List<String> dates = new ArrayList<>();
-        List<Long> counts = new ArrayList<>();
+        List<Long> applyCounts = new ArrayList<>();
+        List<Long> completedCounts = new ArrayList<>();
 
-        for (int i = 6; i >= 0; i--) {
-            LocalDate date = today.minusDays(i);
-            dates.add(date.format(DateTimeFormatter.ofPattern("MM-dd")));
-            LocalDateTime dayStart = date.atStartOfDay();
-            LocalDateTime dayEnd = date.plusDays(1).atStartOfDay();
-            long count = applicationFormMapper.selectCount(
-                    new LambdaQueryWrapper<ApplicationForm>()
-                            .ge(ApplicationForm::getCreateTime, dayStart)
-                            .lt(ApplicationForm::getCreateTime, dayEnd));
-            counts.add(count);
+        if ("month".equals(period)) {
+            for (int i = 3; i >= 0; i--) {
+                LocalDate weekStart = today.minusWeeks(i).with(java.time.DayOfWeek.MONDAY);
+                LocalDate weekEnd = weekStart.plusDays(7);
+                dates.add(weekStart.format(DateTimeFormatter.ofPattern("MM/dd")) + "-"
+                        + weekEnd.format(DateTimeFormatter.ofPattern("MM/dd")));
+                LocalDateTime ws = weekStart.atStartOfDay();
+                LocalDateTime we = weekEnd.atStartOfDay();
+                applyCounts.add(applicationFormMapper.selectCount(
+                        new LambdaQueryWrapper<ApplicationForm>()
+                                .ge(ApplicationForm::getCreateTime, ws)
+                                .lt(ApplicationForm::getCreateTime, we)));
+                completedCounts.add(applicationFormMapper.selectCount(
+                        new LambdaQueryWrapper<ApplicationForm>()
+                                .eq(ApplicationForm::getStatus, "COMPLETED")
+                                .ge(ApplicationForm::getUpdateTime, ws)
+                                .lt(ApplicationForm::getUpdateTime, we)));
+            }
+        } else {
+            for (int i = 6; i >= 0; i--) {
+                LocalDate date = today.minusDays(i);
+                dates.add(date.format(DateTimeFormatter.ofPattern("MM-dd")));
+                LocalDateTime dayStart = date.atStartOfDay();
+                LocalDateTime dayEnd = date.plusDays(1).atStartOfDay();
+                applyCounts.add(applicationFormMapper.selectCount(
+                        new LambdaQueryWrapper<ApplicationForm>()
+                                .ge(ApplicationForm::getCreateTime, dayStart)
+                                .lt(ApplicationForm::getCreateTime, dayEnd)));
+                completedCounts.add(applicationFormMapper.selectCount(
+                        new LambdaQueryWrapper<ApplicationForm>()
+                                .eq(ApplicationForm::getStatus, "COMPLETED")
+                                .ge(ApplicationForm::getUpdateTime, dayStart)
+                                .lt(ApplicationForm::getUpdateTime, dayEnd)));
+            }
         }
 
         Map<String, Object> data = new HashMap<>();
         data.put("dates", dates);
-        data.put("counts", counts);
+        data.put("applyCounts", applyCounts);
+        data.put("completedCounts", completedCounts);
+        data.put("period", period);
         return Result.success(data);
     }
 

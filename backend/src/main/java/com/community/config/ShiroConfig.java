@@ -1,12 +1,13 @@
 package com.community.config;
 
 import com.community.shiro.CustomRealm;
+import org.apache.shiro.session.mgt.eis.SessionDAO;
 import org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor;
 import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
+import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -20,16 +21,24 @@ public class ShiroConfig {
     }
 
     @Bean
-    public DefaultWebSecurityManager securityManager() {
+    public DefaultWebSessionManager sessionManager(SessionDAO sessionDAO) {
+        DefaultWebSessionManager manager = new DefaultWebSessionManager();
+        manager.setSessionDAO(sessionDAO);
+        return manager;
+    }
+
+    @Bean
+    public DefaultWebSecurityManager securityManager(DefaultWebSessionManager sessionManager) {
         DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager();
         securityManager.setRealm(customRealm());
+        securityManager.setSessionManager(sessionManager);
         return securityManager;
     }
 
     @Bean
-    public ShiroFilterFactoryBean shiroFilterFactoryBean() {
+    public ShiroFilterFactoryBean shiroFilterFactoryBean(DefaultWebSecurityManager securityManager) {
         ShiroFilterFactoryBean shiroFilter = new ShiroFilterFactoryBean();
-        shiroFilter.setSecurityManager(securityManager());
+        shiroFilter.setSecurityManager(securityManager);
 
         shiroFilter.setLoginUrl("/api/auth/unauthorized");
         shiroFilter.setUnauthorizedUrl("/api/auth/unauthorized");
@@ -45,10 +54,9 @@ public class ShiroConfig {
     }
 
     @Bean
-    @DependsOn("securityManager")
-    public AuthorizationAttributeSourceAdvisor authorizationAttributeSourceAdvisor() {
+    public AuthorizationAttributeSourceAdvisor authorizationAttributeSourceAdvisor(DefaultWebSecurityManager securityManager) {
         AuthorizationAttributeSourceAdvisor advisor = new AuthorizationAttributeSourceAdvisor();
-        advisor.setSecurityManager(securityManager());
+        advisor.setSecurityManager(securityManager);
         return advisor;
     }
 }

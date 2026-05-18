@@ -37,6 +37,12 @@ const routes = [
         meta: { title: '系统配置', icon: 'Tools' }
       },
       {
+        path: 'system/session',
+        name: 'SessionManage',
+        component: () => import('@/views/system/SessionView.vue'),
+        meta: { title: '在线用户', icon: 'Connection' }
+      },
+      {
         path: 'resident/list',
         name: 'ResidentManage',
         component: () => import('@/views/resident/ResidentManage.vue'),

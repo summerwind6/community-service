@@ -5,6 +5,8 @@ import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.LockedAccountException;
 import org.apache.shiro.authc.UnknownAccountException;
 import org.apache.shiro.authz.UnauthorizedException;
+import org.apache.shiro.session.ExpiredSessionException;
+import org.apache.shiro.session.UnknownSessionException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -80,6 +82,20 @@ public class GlobalExceptionHandler {
     public Result<String> handleMessageNotReadableException(HttpMessageNotReadableException e) {
         log.warn("请求体格式错误：{}", e.getMessage());
         return Result.error(400, "请求参数格式错误");
+    }
+
+    // ==================== Shiro 会话异常 ====================
+
+    @ExceptionHandler(UnknownSessionException.class)
+    public Result<String> handleUnknownSessionException(UnknownSessionException e) {
+        log.warn("会话异常-会话不存在：{}", e.getMessage());
+        return Result.error(401, "会话已失效，请重新登录");
+    }
+
+    @ExceptionHandler(ExpiredSessionException.class)
+    public Result<String> handleExpiredSessionException(ExpiredSessionException e) {
+        log.warn("会话异常-会话已过期：{}", e.getMessage());
+        return Result.error(401, "会话已过期，请重新登录");
     }
 
     // ==================== 兜底异常 ====================

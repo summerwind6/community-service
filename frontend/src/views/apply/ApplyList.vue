@@ -4,6 +4,7 @@
       <template #header>
         <div class="card-header">
           <span>申请管理</span>
+          <el-button v-if="userStore.hasRole('CLERK') || userStore.hasRole('ADMIN')" type="primary" icon="Plus" @click="applyFormDialog.open()">新增申请</el-button>
         </div>
       </template>
 
@@ -44,12 +45,12 @@
           <template #default="{ row }">
             <el-button type="primary" link size="small" @click="openDetail(row)">详情</el-button>
             <el-button
-              v-if="row.status === 'PENDING'"
+              v-if="row.status === 'PENDING' && (userStore.hasRole('CLERK') || userStore.hasRole('ADMIN'))"
               type="warning" link size="small"
               @click="openAudit(row, 'review')"
             >受理</el-button>
             <el-button
-              v-if="row.status === 'PROCESSING'"
+              v-if="row.status === 'PROCESSING' && (userStore.hasRole('REVIEWER') || userStore.hasRole('ADMIN'))"
               type="success" link size="small"
               @click="openAudit(row, 'approve')"
             >审核</el-button>
@@ -129,6 +130,7 @@
         <el-button type="primary" :loading="submitLoading" @click="handleAuditSubmit">确认提交</el-button>
       </template>
     </el-dialog>
+    <ApplyFormDialog ref="applyFormDialog" @success="loadData" />
   </div>
 </template>
 
@@ -137,7 +139,11 @@ import { ref, reactive, onMounted } from 'vue'
 import { getApplyList, getApplyDetail, getAuditRecords, reviewApply, approveApply } from '@/api/apply/apply'
 import { formatStatus } from '@/utils/common'
 import { ElMessage } from 'element-plus'
+import ApplyFormDialog from '@/components/ApplyFormDialog.vue'
+import { useUserStore } from '@/store/user'
 
+const userStore = useUserStore()
+const applyFormDialog = ref()
 const loading = ref(false)
 const tableData = ref([])
 const total = ref(0)

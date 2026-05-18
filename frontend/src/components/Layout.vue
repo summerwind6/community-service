@@ -26,6 +26,7 @@
           <el-menu-item index="/system/user">用户管理</el-menu-item>
           <el-menu-item index="/system/role">角色管理</el-menu-item>
           <el-menu-item index="/system/config">系统配置</el-menu-item>
+          <el-menu-item index="/system/session">在线用户</el-menu-item>
         </el-sub-menu>
 
         <el-sub-menu index="/service">
