@@ -55,7 +55,8 @@ public class ResidentInfoController {
         return Result.success();
     }
 
-    @Operation(summary = "根据手机号查询居民（免登录）")
+    @Operation(summary = "根据手机号查询居民")
+    @RequiresPermissions("resident:detail")
     @GetMapping("/by-phone")
     public Result<ResidentInfo> getByPhone(@RequestParam String phone) {
         return Result.success(residentInfoService.getResidentByPhone(phone));
