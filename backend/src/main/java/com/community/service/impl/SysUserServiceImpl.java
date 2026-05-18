@@ -59,6 +59,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         UsernamePasswordToken token = new UsernamePasswordToken(username, hashedPassword);
         try {
             subject.login(token);
+            subject.getSession().setAttribute("username", username);
             System.out.println("[DEBUG] Shiro login SUCCESS");
         } catch (AuthenticationException e) {
             System.out.println("[DEBUG] Shiro login FAILED: " + e.getClass().getSimpleName() + " - " + e.getMessage());

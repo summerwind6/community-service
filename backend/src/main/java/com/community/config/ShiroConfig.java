@@ -1,13 +1,9 @@
 package com.community.config;
 
 import com.community.shiro.CustomRealm;
-import org.apache.shiro.session.mgt.eis.RandomSessionIdGenerator;
-import org.apache.shiro.session.mgt.eis.SessionDAO;
 import org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor;
 import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
-import org.apache.shiro.web.servlet.SimpleCookie;
-import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -23,21 +19,9 @@ public class ShiroConfig {
     }
 
     @Bean
-    public DefaultWebSessionManager sessionManager(SessionDAO sessionDAO) {
-        DefaultWebSessionManager manager = new DefaultWebSessionManager();
-        manager.setSessionDAO(sessionDAO);
-        manager.setSessionIdGenerator(new RandomSessionIdGenerator());
-        manager.setSessionIdCookie(new SimpleCookie("JSESSIONID"));
-        manager.setSessionIdCookieEnabled(true);
-        manager.setSessionIdUrlRewritingEnabled(false);
-        return manager;
-    }
-
-    @Bean
-    public DefaultWebSecurityManager securityManager(DefaultWebSessionManager sessionManager) {
+    public DefaultWebSecurityManager securityManager() {
         DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager();
         securityManager.setRealm(customRealm());
-        securityManager.setSessionManager(sessionManager);
         return securityManager;
     }
 
