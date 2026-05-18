@@ -187,7 +187,7 @@ public class ApplicationFormServiceImpl extends ServiceImpl<ApplicationFormMappe
                 .last("LIMIT 1");
         ApplicationForm last = getOne(wrapper, false);
         int seq = 1;
-        if (last != null && last.getApplyNo().length() >= 16) {
+        if (last != null && last.getApplyNo().length() >= 14) {
             try {
                 seq = Integer.parseInt(last.getApplyNo().substring(12)) + 1;
             } catch (NumberFormatException ignored) {
