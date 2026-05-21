@@ -2,7 +2,7 @@
   <el-container class="layout-container">
     <el-aside :width="isCollapse ? '64px' : '220px'" class="aside">
       <div class="logo">
-        <img src="@/assets/logo.png" alt="logo" v-if="!isCollapse" />
+        <el-icon :size="28" color="#fff"><HomeFilled /></el-icon>
         <span v-show="!isCollapse">社区便民服务</span>
       </div>
       <el-menu
@@ -18,12 +18,15 @@
           <template #title>仪表盘</template>
         </el-menu-item>
 
-        <el-sub-menu index="/system">
+        <el-sub-menu v-if="userStore.hasRole('ADMIN')" index="/system">
           <template #title>
             <el-icon><Setting /></el-icon>
             <span>系统管理</span>
           </template>
           <el-menu-item index="/system/user">用户管理</el-menu-item>
+          <el-menu-item index="/system/role">角色管理</el-menu-item>
+          <el-menu-item index="/system/config">系统配置</el-menu-item>
+          <el-menu-item index="/system/session">在线用户</el-menu-item>
         </el-sub-menu>
 
         <el-sub-menu index="/service">
@@ -31,6 +34,7 @@
             <el-icon><Document /></el-icon>
             <span>服务管理</span>
           </template>
+          <el-menu-item index="/resident/list">居民管理</el-menu-item>
           <el-menu-item index="/service/item">服务项目</el-menu-item>
         </el-sub-menu>
 
@@ -73,6 +77,7 @@
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item command="profile">个人中心</el-dropdown-item>
+                <el-dropdown-item command="changePassword">修改密码</el-dropdown-item>
                 <el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
               </el-dropdown-menu>
             </template>
@@ -88,7 +93,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 
@@ -96,12 +101,18 @@ const router = useRouter()
 const userStore = useUserStore()
 const isCollapse = ref(false)
 
+onMounted(() => {})
+
 function toggleCollapse() {
   isCollapse.value = !isCollapse.value
 }
 
 async function handleCommand(command) {
-  if (command === 'logout') {
+  if (command === 'profile') {
+    router.push('/profile')
+  } else if (command === 'changePassword') {
+    router.push('/profile/change-password')
+  } else if (command === 'logout') {
     await userStore.logout()
     router.push('/login')
   }

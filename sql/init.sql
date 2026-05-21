@@ -248,7 +248,7 @@ INSERT INTO `sys_role_perm` (`role_id`, `perm_id`) VALUES
 -- 插入默认超级管理员账号
 -- 密码: admin123 (使用Shiro MD5加密，盐值随机)
 INSERT INTO `sys_user` (`username`, `password`, `salt`, `real_name`, `phone`, `email`, `status`) VALUES
-('admin', 'e10adc3949ba59abbe56e057f20f883e', 'salt123', '超级管理员', '13800138000', 'admin@community.com', 1);
+('admin', '82d1d187ddcfbf1ba740510f28308c26', 'salt123', '超级管理员', '13800138000', 'admin@community.com', 1);
 
 -- 为管理员分配角色
 INSERT INTO `sys_user_role` (`user_id`, `role_id`) VALUES (1, 1);
@@ -260,6 +260,30 @@ INSERT INTO `service_item` (`item_name`, `item_code`, `category`, `description`,
 ('老年优待证办理', 'ELDERLY_CARD', '养老服务', '60岁以上老年人优待证办理', 0.00, 5, '身份证原件、近期免冠照片2张', 1),
 ('独生子女证办理', 'ONE_CHILD_CERT', '计划生育', '独生子女父母光荣证办理', 0.00, 5, '结婚证、户口本、独生子女证明', 1),
 ('就业登记', 'EMPLOYMENT_REG', '就业服务', '失业人员就业登记', 0.00, 3, '身份证、失业证、学历证明', 1);
+
+-- -----------------------------------------------------
+-- 10. 系统配置表 (sys_config)
+-- 存储系统基础参数，如系统名称、办理时限提醒等
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `sys_config`;
+CREATE TABLE `sys_config` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+    `config_key` VARCHAR(100) NOT NULL COMMENT '配置键（唯一）',
+    `config_value` VARCHAR(500) DEFAULT NULL COMMENT '配置值',
+    `description` VARCHAR(200) DEFAULT NULL COMMENT '配置说明',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_config_key` (`config_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统配置表';
+
+-- 插入默认配置数据
+INSERT INTO `sys_config` (`config_key`, `config_value`, `description`) VALUES
+('system_name', '社区便民服务申请与进度管理系统', '系统名称'),
+('processing_deadline_days', '7', '默认办理时限（天）'),
+('notice_enabled', 'true', '是否启用办理时限提醒'),
+('contact_phone', '010-12345678', '系统联系电话'),
+('org_name', '街道便民服务中心', '所属组织名称');
 
 -- =====================================================
 -- 数据库初始化完成

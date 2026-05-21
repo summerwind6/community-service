@@ -4,7 +4,13 @@
       <el-col :span="16">
         <el-card shadow="hover">
           <template #header>
-            <span>申请趋势分析</span>
+            <div class="chart-header">
+              <span>申请趋势分析</span>
+              <el-radio-group v-model="period" size="small" @change="loadData">
+                <el-radio-button value="week">按周</el-radio-button>
+                <el-radio-button value="month">按月</el-radio-button>
+              </el-radio-group>
+            </div>
           </template>
           <div ref="trendChartRef" style="height: 400px;"></div>
         </el-card>
@@ -19,55 +25,43 @@
         </el-card>
       </el-col>
     </el-row>
-
-    <el-row :gutter="20" style="margin-top: 20px;">
-      <el-col :span="24">
-        <el-card shadow="hover">
-          <template #header>
-            <span>审核效率统计</span>
-          </template>
-          <div ref="barChartRef" style="height: 350px;"></div>
-        </el-card>
-      </el-col>
-    </el-row>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import * as echarts from 'echarts'
+import { getTrendData, getDistributionData } from '@/api/stat/stat'
 
 const trendChartRef = ref()
 const pieChartRef = ref()
-const barChartRef = ref()
+const period = ref('week')
 let trendChart = null
 let pieChart = null
-let barChart = null
 
 function initCharts() {
   if (trendChartRef.value) {
     trendChart = echarts.init(trendChartRef.value)
     trendChart.setOption({
       tooltip: { trigger: 'axis' },
-      legend: { data: ['提交数', '完成数'] },
-      xAxis: {
-        type: 'category',
-        data: ['1月', '2月', '3月', '4月', '5月', '6月']
-      },
-      yAxis: { type: 'value' },
-      series: [
-        {
-          name: '提交数',
-          type: 'bar',
-          data: [0, 0, 0, 0, 0, 0]
-        },
-        {
-          name: '完成数',
-          type: 'line',
-          smooth: true,
-          data: [0, 0, 0, 0, 0, 0]
-        }
-      ]
+      legend: { data: ['申请量', '办结量'] },
+      xAxis: { type: 'category', data: [] },
+      yAxis: { type: 'value', minInterval: 1 },
+      series: [{
+        name: '申请量',
+        type: 'line',
+        smooth: true,
+        data: [],
+        areaStyle: { opacity: 0.3 }
+      }, {
+        name: '办结量',
+        type: 'line',
+        smooth: true,
+        data: [],
+        lineStyle: { color: '#67C23A' },
+        itemStyle: { color: '#67C23A' },
+        areaStyle: { color: '#67C23A', opacity: 0.15 }
+      }]
     })
   }
 
@@ -83,33 +77,43 @@ function initCharts() {
       }]
     })
   }
+}
 
-  if (barChartRef.value) {
-    barChart = echarts.init(barChartRef.value)
-    barChart.setOption({
-      tooltip: { trigger: 'axis' },
-      xAxis: {
-        type: 'category',
-        data: ['证件办理', '救助帮扶', '养老服务', '计划生育', '就业服务']
-      },
-      yAxis: { type: 'value', name: '平均天数' },
-      series: [{
-        type: 'bar',
-        data: [0, 0, 0, 0, 0],
-        itemStyle: { color: '#409EFF' }
-      }]
-    })
+async function loadData() {
+  try {
+    const [trendRes, distRes] = await Promise.all([
+      getTrendData({ period: period.value }),
+      getDistributionData()
+    ])
+    if (trendChart && trendRes.data) {
+      trendChart.setOption({
+        xAxis: { data: trendRes.data.dates || [] },
+        series: [
+          { data: trendRes.data.applyCounts || [] },
+          { data: trendRes.data.completedCounts || [] }
+        ]
+      })
+    }
+    if (pieChart && distRes.data) {
+      const pieData = (distRes.data.categories || []).map((name, i) => ({
+        name,
+        value: (distRes.data.values || [])[i] || 0
+      }))
+      pieChart.setOption({ series: [{ data: pieData }] })
+    }
+  } catch {
+    // handled by interceptor
   }
 }
 
 function handleResize() {
   trendChart?.resize()
   pieChart?.resize()
-  barChart?.resize()
 }
 
 onMounted(() => {
   initCharts()
+  loadData()
   window.addEventListener('resize', handleResize)
 })
 
@@ -117,8 +121,13 @@ onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
   trendChart?.dispose()
   pieChart?.dispose()
-  barChart?.dispose()
 })
 </script>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+</style>

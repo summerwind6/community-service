@@ -6,37 +6,76 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.community.common.BusinessException;
 import com.community.entity.dto.PageDTO;
 import com.community.entity.dto.UserDTO;
+import com.community.entity.po.SysRole;
 import com.community.entity.po.SysUser;
+import com.community.entity.po.SysUserRole;
+import com.community.entity.vo.LoginVO;
 import com.community.entity.vo.PageVO;
 import com.community.entity.vo.UserVO;
+import com.community.mapper.SysRoleMapper;
 import com.community.mapper.SysUserMapper;
+import com.community.mapper.SysUserRoleMapper;
 import com.community.service.SysUserService;
 import com.community.shiro.PasswordUtil;
+import com.community.util.JwtTokenUtil;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> implements SysUserService {
 
+    @Autowired
+    private JwtTokenUtil jwtTokenUtil;
+
+    @Autowired
+    private SysUserRoleMapper sysUserRoleMapper;
+
+    @Autowired
+    private SysRoleMapper sysRoleMapper;
+
     @Override
-    public UserVO login(String username, String password) {
-        Subject subject = SecurityUtils.getSubject();
-        UsernamePasswordToken token = new UsernamePasswordToken(username, password);
-        try {
-            subject.login(token);
-        } catch (AuthenticationException e) {
+    public LoginVO login(String username, String password) {
+        SysUser user = getUserByUsername(username);
+        System.out.println("[DEBUG] getUserByUsername result: " + (user != null ? "found, salt=" + user.getSalt() + ", storedHash=" + user.getPassword() : "NOT FOUND"));
+        if (user == null) {
             throw new BusinessException("用户名或密码错误");
         }
 
-        return getUserInfoByUsername(username);
+        String hashedPassword = PasswordUtil.encrypt(password, user.getSalt());
+        System.out.println("[DEBUG] Input password hashed: " + hashedPassword);
+        System.out.println("[DEBUG] Stored password hash: " + user.getPassword());
+
+        Subject subject = SecurityUtils.getSubject();
+        UsernamePasswordToken token = new UsernamePasswordToken(username, hashedPassword);
+        try {
+            subject.login(token);
+            subject.getSession().setAttribute("username", username);
+            System.out.println("[DEBUG] Shiro login SUCCESS");
+        } catch (AuthenticationException e) {
+            System.out.println("[DEBUG] Shiro login FAILED: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+            throw new BusinessException("用户名或密码错误");
+        }
+
+        String jwt = jwtTokenUtil.generateToken(user.getId(), username);
+
+        LoginVO loginVO = new LoginVO();
+        loginVO.setToken(jwt);
+        loginVO.setUser(convertToVO(user));
+        return loginVO;
     }
 
     @Override
-    public void register(UserDTO userDTO) {
+    public void register(UserDTO userDTO, Long roleId) {
         LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysUser::getUsername, userDTO.getUsername());
         if (count(wrapper) > 0) {
@@ -50,6 +89,13 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         user.setPassword(PasswordUtil.encrypt(userDTO.getPassword(), salt));
         user.setStatus(1);
         save(user);
+
+        if (roleId != null) {
+            SysUserRole userRole = new SysUserRole();
+            userRole.setUserId(user.getId());
+            userRole.setRoleId(roleId);
+            sysUserRoleMapper.insert(userRole);
+        }
     }
 
     @Override
@@ -103,17 +149,50 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         return pageVO;
     }
 
-    private UserVO convertToVO(SysUser user) {
-        UserVO vo = new UserVO();
-        BeanUtils.copyProperties(user, vo);
-        vo.setPassword(null);
-        vo.setSalt(null);
-        return vo;
+    @Override
+    public void changePassword(Long userId, String oldPassword, String newPassword) {
+        SysUser user = getById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        if (!PasswordUtil.verify(oldPassword, user.getSalt(), user.getPassword())) {
+            throw new BusinessException("原密码错误");
+        }
+        user.setPassword(PasswordUtil.encrypt(newPassword, user.getSalt()));
+        updateById(user);
+    }
+
+    @Override
+    public UserVO updateProfile(Long userId, UserDTO userDTO) {
+        SysUser user = getById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        BeanUtils.copyProperties(userDTO, user, "id", "username", "password", "salt", "status");
+        updateById(user);
+        return convertToVO(user);
     }
 
     @Override
     public UserVO getUserInfoByUsername(String username) {
         SysUser user = getUserByUsername(username);
         return convertToVO(user);
+    }
+
+    private UserVO convertToVO(SysUser user) {
+        UserVO vo = new UserVO();
+        BeanUtils.copyProperties(user, vo);
+        vo.setPassword(null);
+        vo.setSalt(null);
+
+        LambdaQueryWrapper<SysUserRole> urWrapper = new LambdaQueryWrapper<>();
+        urWrapper.eq(SysUserRole::getUserId, user.getId());
+        List<SysUserRole> userRoles = sysUserRoleMapper.selectList(urWrapper);
+        if (!userRoles.isEmpty()) {
+            List<Long> roleIds = userRoles.stream().map(SysUserRole::getRoleId).toList();
+            List<SysRole> roles = sysRoleMapper.selectBatchIds(roleIds);
+            vo.setRoles(roles.stream().map(SysRole::getRoleCode).collect(Collectors.toSet()));
+        }
+        return vo;
     }
 }

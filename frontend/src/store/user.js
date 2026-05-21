@@ -5,15 +5,17 @@ import { login as loginApi, getUserInfo as getUserInfoApi, logout as logoutApi }
 export const useUserStore = defineStore('user', () => {
   const token = ref(localStorage.getItem('token') || '')
   const userInfo = ref(JSON.parse(localStorage.getItem('userInfo') || '{}'))
-  const roles = ref([])
+  const roles = ref(JSON.parse(localStorage.getItem('userRoles') || '[]'))
 
   async function login(loginForm) {
     try {
       const res = await loginApi(loginForm)
-      token.value = 'session-token'
+      token.value = res.data.token || 'session-token'
       userInfo.value = res.data.user
+      roles.value = res.data.user.roles || []
       localStorage.setItem('token', token.value)
       localStorage.setItem('userInfo', JSON.stringify(userInfo.value))
+      localStorage.setItem('userRoles', JSON.stringify(roles.value))
       return res
     } catch (error) {
       throw error
@@ -26,6 +28,7 @@ export const useUserStore = defineStore('user', () => {
       userInfo.value = res.data
       roles.value = res.data.roles || []
       localStorage.setItem('userInfo', JSON.stringify(userInfo.value))
+      localStorage.setItem('userRoles', JSON.stringify(roles.value))
       return res
     } catch (error) {
       throw error
@@ -41,6 +44,7 @@ export const useUserStore = defineStore('user', () => {
       roles.value = []
       localStorage.removeItem('token')
       localStorage.removeItem('userInfo')
+      localStorage.removeItem('userRoles')
     }
   }
 

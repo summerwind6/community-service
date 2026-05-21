@@ -1,8 +1,16 @@
 import request from '@/utils/request'
 
-export function getItemList() {
+export function getItemList(params) {
   return request({
     url: '/item/list',
+    method: 'get',
+    params
+  })
+}
+
+export function getEnabledItems() {
+  return request({
+    url: '/item/enabled',
     method: 'get'
   })
 }
@@ -27,6 +35,14 @@ export function updateItem(data) {
     url: '/item',
     method: 'put',
     data
+  })
+}
+
+export function toggleItemStatus(id, status) {
+  return request({
+    url: `/item/${id}/status`,
+    method: 'put',
+    params: { status }
   })
 }
 

@@ -7,7 +7,6 @@ import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
-import org.apache.shiro.util.ByteSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class CustomRealm extends AuthorizingRealm {
@@ -36,8 +35,10 @@ public class CustomRealm extends AuthorizingRealm {
         UsernamePasswordToken token = (UsernamePasswordToken) authenticationToken;
         String username = token.getUsername();
 
+        System.out.println("[DEBUG] CustomRealm.doGetAuthenticationInfo called, username=" + username);
         SysUser user = sysUserService.getUserByUsername(username);
         if (user == null) {
+            System.out.println("[DEBUG] CustomRealm: user NOT FOUND in DB");
             throw new UnknownAccountException("用户不存在");
         }
 
@@ -45,11 +46,10 @@ public class CustomRealm extends AuthorizingRealm {
             throw new LockedAccountException("账号已被禁用");
         }
 
-        ByteSource salt = ByteSource.Util.bytes(user.getSalt());
+        System.out.println("[DEBUG] CustomRealm: returning stored password=" + user.getPassword());
         return new SimpleAuthenticationInfo(
                 username,
                 user.getPassword(),
-                salt,
                 getName()
         );
     }

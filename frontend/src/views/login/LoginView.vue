@@ -1,24 +1,26 @@
 <template>
-  <div class="login-container">
-    <div class="login-card">
+  <div class="login-page">
+    <div class="login-box">
       <div class="login-header">
-        <h2>社区便民服务申请与进度管理系统</h2>
-        <p>政企简化版</p>
+        <div class="header-icon">
+          <el-icon :size="40"><HomeFilled /></el-icon>
+        </div>
+        <h1>社区便民服务申请与进度管理系统</h1>
+        <p>街道便民服务中心</p>
       </div>
 
       <el-form
         ref="loginFormRef"
         :model="loginForm"
         :rules="loginRules"
-        class="login-form"
         @keyup.enter="handleLogin"
       >
         <el-form-item prop="username">
           <el-input
             v-model="loginForm.username"
-            placeholder="请输入用户名"
-            prefix-icon="User"
+            placeholder="请输入账号"
             size="large"
+            :prefix-icon="UserFilled"
           />
         </el-form-item>
 
@@ -27,42 +29,27 @@
             v-model="loginForm.password"
             type="password"
             placeholder="请输入密码"
-            prefix-icon="Lock"
             size="large"
             show-password
+            :prefix-icon="Lock"
           />
         </el-form-item>
 
         <el-form-item>
-          <div class="login-options">
-            <el-checkbox v-model="loginForm.rememberMe">记住我</el-checkbox>
-          </div>
-        </el-form-item>
-
-        <el-form-item>
-          <el-button
-            type="primary"
-            size="large"
-            :loading="loading"
-            class="login-btn"
-            @click="handleLogin"
-          >
+          <el-button type="primary" size="large" class="submit-btn" :loading="loading" @click="handleLogin">
             登 录
           </el-button>
         </el-form-item>
       </el-form>
-
-      <div class="login-footer">
-        <span>默认账号：admin / admin123</span>
-      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
+import { Lock, UserFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
@@ -72,23 +59,25 @@ const loading = ref(false)
 
 const loginForm = reactive({
   username: '',
-  password: '',
-  rememberMe: false
+  password: ''
 })
 
 const loginRules = {
-  username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' }
-  ],
+  username: [{ required: true, message: '请输入账号', trigger: 'blur' }],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, max: 20, message: '密码长度在6-20位之间', trigger: 'blur' }
+    { min: 6, max: 20, message: '密码长度6-20位', trigger: 'blur' }
   ]
 }
 
+onMounted(() => {
+  localStorage.removeItem('token')
+  localStorage.removeItem('userInfo')
+  localStorage.removeItem('userRoles')
+})
+
 async function handleLogin() {
   if (!loginFormRef.value) return
-
   await loginFormRef.value.validate(async (valid) => {
     if (valid) {
       loading.value = true
@@ -96,8 +85,8 @@ async function handleLogin() {
         await userStore.login(loginForm)
         ElMessage.success('登录成功')
         router.push('/dashboard')
-      } catch (error) {
-        console.error('登录失败：', error)
+      } catch {
+        // handled by interceptor
       } finally {
         loading.value = false
       }
@@ -107,56 +96,65 @@ async function handleLogin() {
 </script>
 
 <style scoped lang="scss">
-.login-container {
+.login-page {
   width: 100%;
   height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #f0f2f5;
 }
 
-.login-card {
-  width: 420px;
-  padding: 40px;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+.login-box {
+  width: 400px;
+  padding: 48px 40px 40px;
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 2px 24px rgba(0, 0, 0, 0.06);
+}
 
-  .login-header {
-    text-align: center;
-    margin-bottom: 30px;
+.login-header {
+  text-align: center;
+  margin-bottom: 36px;
 
-    h2 {
-      font-size: 24px;
-      color: #303133;
-      margin-bottom: 8px;
-    }
-
-    p {
-      font-size: 14px;
-      color: #909399;
-    }
+  .header-icon {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 16px;
+    background: #304156;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
   }
 
-  .login-form {
-    .login-options {
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .login-btn {
-      width: 100%;
-    }
+  h1 {
+    font-size: 18px;
+    color: #303133;
+    font-weight: 600;
+    margin: 0 0 6px;
+    letter-spacing: 1px;
   }
 
-  .login-footer {
-    margin-top: 20px;
-    text-align: center;
-    font-size: 12px;
+  p {
+    font-size: 13px;
     color: #909399;
+    margin: 0;
+  }
+}
+
+.submit-btn {
+  width: 100%;
+  height: 44px;
+  font-size: 16px;
+  letter-spacing: 8px;
+  background-color: #304156;
+  border-color: #304156;
+
+  &:hover {
+    background-color: #263445;
+    border-color: #263445;
   }
 }
 </style>

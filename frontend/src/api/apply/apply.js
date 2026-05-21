@@ -8,13 +8,6 @@ export function submitApply(data) {
   })
 }
 
-export function getMyApplyList() {
-  return request({
-    url: '/apply/my',
-    method: 'get'
-  })
-}
-
 export function getApplyList(params) {
   return request({
     url: '/apply/list',
@@ -23,10 +16,34 @@ export function getApplyList(params) {
   })
 }
 
-export function auditApply(id, data) {
+export function getApplyDetail(id) {
   return request({
-    url: `/apply/audit/${id}`,
-    method: 'put',
+    url: `/apply/${id}`,
+    method: 'get'
+  })
+}
+
+export function getAuditRecords(id) {
+  return request({
+    url: `/apply/${id}/audit-records`,
+    method: 'get'
+  })
+}
+
+/** 初审（社区受理员） */
+export function reviewApply(id, data) {
+  return request({
+    url: `/apply/${id}/review`,
+    method: 'post',
+    data
+  })
+}
+
+/** 复审（街道审核员） */
+export function approveApply(id, data) {
+  return request({
+    url: `/apply/${id}/approve`,
+    method: 'post',
     data
   })
 }
