@@ -121,7 +121,7 @@
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
 import { getAppointmentList, addAppointment, updateAppointmentStatus } from '@/api/appointment/appointment'
-import { getItemList } from '@/api/item/item'
+import { getEnabledItems } from '@/api/item/item'
 
 const viewMode = ref('list')
 const loading = ref(false)
@@ -190,7 +190,7 @@ function resetSearch() { searchForm.keyword = ''; searchForm.status = ''; pageNu
 
 async function handleAdd() {
   try {
-    const res = await getItemList()
+    const res = await getEnabledItems()
     serviceItems.value = res.data || []
   } catch {
     serviceItems.value = []
