@@ -31,4 +31,6 @@ public class UserDTO {
     private Integer status;
 
     private String avatar;
+
+    private Long roleId;
 }

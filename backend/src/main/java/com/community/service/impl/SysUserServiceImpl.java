@@ -75,7 +75,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
-    public void register(UserDTO userDTO, Long roleId) {
+    public void register(UserDTO userDTO) {
         LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysUser::getUsername, userDTO.getUsername());
         if (count(wrapper) > 0) {
@@ -90,10 +90,10 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         user.setStatus(1);
         save(user);
 
-        if (roleId != null) {
+        if (userDTO.getRoleId() != null) {
             SysUserRole userRole = new SysUserRole();
             userRole.setUserId(user.getId());
-            userRole.setRoleId(roleId);
+            userRole.setRoleId(userDTO.getRoleId());
             sysUserRoleMapper.insert(userRole);
         }
     }

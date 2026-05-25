@@ -42,8 +42,8 @@ public class UserController {
     @Operation(summary = "新增用户")
     @RequiresPermissions("user:add")
     @PostMapping
-    public Result<Void> add(@RequestBody UserDTO userDTO, @RequestParam(required = false) Long roleId) {
-        sysUserService.register(userDTO, roleId);
+    public Result<Void> add(@RequestBody UserDTO userDTO) {
+        sysUserService.register(userDTO);
         return Result.success();
     }
 
