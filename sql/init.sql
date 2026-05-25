@@ -330,3 +330,33 @@ CREATE TABLE `notification` (
 -- 数据库初始化完成
 -- 默认登录账号: admin / admin123
 -- =====================================================
+-- =====================================================
+-- Additional module for Liang Haoyan
+-- =====================================================
+
+DROP TABLE IF EXISTS `evaluation`;
+CREATE TABLE `evaluation` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Primary key',
+    `application_id` BIGINT NOT NULL COMMENT 'Related application id',
+    `score` INT NOT NULL COMMENT 'Score 1-5',
+    `content` VARCHAR(500) DEFAULT NULL COMMENT 'Evaluation content',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Create time',
+    PRIMARY KEY (`id`),
+    KEY `idx_application_id` (`application_id`),
+    KEY `idx_score` (`score`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Service evaluation';
+
+INSERT INTO `sys_permission` (`perm_name`, `perm_code`, `perm_type`, `parent_id`, `url`, `sort_order`, `status`) VALUES
+('链嶅姟璇勪环', 'evaluation', 'menu', 0, '/evaluation', 6, 1),
+('璇勪环鍒楄〃', 'evaluation:list', 'button', (SELECT id FROM sys_permission WHERE perm_code='evaluation'), null, 1, 1),
+('璇勪环缁熻', 'evaluation:stats', 'button', (SELECT id FROM sys_permission WHERE perm_code='evaluation'), null, 2, 1),
+('鎶ヨ〃瀵煎嚭', 'report:export', 'menu', 0, '/report', 7, 1);
+
+INSERT INTO `sys_role_perm` (`role_id`, `perm_id`)
+SELECT 1, id FROM sys_permission WHERE perm_code IN ('evaluation', 'evaluation:list', 'evaluation:stats', 'report:export');
+
+INSERT INTO `sys_role_perm` (`role_id`, `perm_id`)
+SELECT 2, id FROM sys_permission WHERE perm_code IN ('evaluation', 'evaluation:list', 'evaluation:stats', 'report:export');
+
+INSERT INTO `sys_role_perm` (`role_id`, `perm_id`)
+SELECT 3, id FROM sys_permission WHERE perm_code IN ('evaluation', 'evaluation:list', 'evaluation:stats', 'report:export');

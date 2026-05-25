@@ -76,7 +76,19 @@ const routes = [
         path: 'stat/analysis',
         name: 'StatAnalysis',
         component: () => import('@/views/stat/StatAnalysis.vue'),
-        meta: { title: '统计分析', icon: 'DataAnalysis' }
+        meta: { title: '数据分析', icon: 'DataAnalysis' }
+      },
+      {
+        path: 'evaluation',
+        name: 'EvaluationManage',
+        component: () => import('@/views/stat/EvaluationManage.vue'),
+        meta: { title: '服务评价', icon: 'Star' }
+      },
+      {
+        path: 'report',
+        name: 'ReportView',
+        component: () => import('@/views/stat/ReportView.vue'),
+        meta: { title: '数据报表', icon: 'PieChart' }
       },
       {
         path: 'profile',
@@ -116,7 +128,9 @@ router.beforeEach((to, from, next) => {
     return
   }
 
-  document.title = to.meta.title ? `${to.meta.title} - 社区便民服务系统` : '社区便民服务系统'
+  document.title = to.meta.title
+    ? `${to.meta.title} - 社区便民服务系统`
+    : '社区便民服务系统'
   next()
 })
 

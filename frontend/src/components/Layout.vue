@@ -5,6 +5,7 @@
         <el-icon :size="28" color="#fff"><HomeFilled /></el-icon>
         <span v-show="!isCollapse">社区便民服务</span>
       </div>
+
       <el-menu
         :default-active="$route.path"
         :collapse="isCollapse"
@@ -44,10 +45,17 @@
             <span>申请管理</span>
           </template>
           <el-menu-item index="/apply/list">申请列表</el-menu-item>
-          <el-menu-item v-if="userStore.hasRole('ADMIN') || userStore.hasRole('CLERK')" index="/appointment/list">预约管理</el-menu-item>
+          <el-menu-item
+            v-if="userStore.hasRole('ADMIN') || userStore.hasRole('CLERK')"
+            index="/appointment/list"
+          >
+            预约管理
+          </el-menu-item>
           <el-menu-item index="/notification/list">
-            <span>消息通知</span>
-            <el-badge :value="unreadCount" :hidden="unreadCount === 0" style="margin-left:8px;" />
+            <div class="notify-item">
+              <span>消息通知</span>
+              <el-badge :value="unreadCount" :hidden="unreadCount === 0" />
+            </div>
           </el-menu-item>
         </el-sub-menu>
 
@@ -57,6 +65,15 @@
             <span>统计分析</span>
           </template>
           <el-menu-item index="/stat/analysis">数据分析</el-menu-item>
+        </el-sub-menu>
+
+        <el-sub-menu index="/evaluation">
+          <template #title>
+            <el-icon><Star /></el-icon>
+            <span>服务评价</span>
+          </template>
+          <el-menu-item index="/evaluation">评价列表</el-menu-item>
+          <el-menu-item index="/report">数据报表</el-menu-item>
         </el-sub-menu>
       </el-menu>
     </el-aside>
@@ -98,7 +115,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { getUnreadCount } from '@/api/notification/notification'
@@ -107,24 +124,32 @@ const router = useRouter()
 const userStore = useUserStore()
 const isCollapse = ref(false)
 const unreadCount = ref(0)
+let unreadTimer = null
 
-onMounted(() => {
-  fetchUnreadCount()
-  setInterval(fetchUnreadCount, 30000)
-})
+function toggleCollapse() {
+  isCollapse.value = !isCollapse.value
+}
 
 async function fetchUnreadCount() {
   try {
     const res = await getUnreadCount()
     unreadCount.value = res.data?.count || 0
   } catch {
-    // ignore
+    unreadCount.value = 0
   }
 }
 
-function toggleCollapse() {
-  isCollapse.value = !isCollapse.value
-}
+onMounted(() => {
+  fetchUnreadCount()
+  unreadTimer = window.setInterval(fetchUnreadCount, 30000)
+})
+
+onUnmounted(() => {
+  if (unreadTimer) {
+    window.clearInterval(unreadTimer)
+    unreadTimer = null
+  }
+})
 
 async function handleCommand(command) {
   if (command === 'profile') {
@@ -157,16 +182,18 @@ async function handleCommand(command) {
     font-size: 18px;
     font-weight: bold;
     border-bottom: 1px solid #1f2d3d;
-
-    img {
-      width: 32px;
-      height: 32px;
-      margin-right: 8px;
-    }
   }
 
   .el-menu {
     border-right: none;
+  }
+
+  .notify-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
   }
 }
 
