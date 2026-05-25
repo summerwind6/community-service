@@ -44,7 +44,7 @@
             <span>申请管理</span>
           </template>
           <el-menu-item index="/apply/list">申请列表</el-menu-item>
-          <el-menu-item index="/appointment/list">预约管理</el-menu-item>
+          <el-menu-item v-if="userStore.hasRole('ADMIN') || userStore.hasRole('CLERK')" index="/appointment/list">预约管理</el-menu-item>
           <el-menu-item index="/notification/list">
             <span>消息通知</span>
             <el-badge :value="unreadCount" :hidden="unreadCount === 0" style="margin-left:8px;" />
