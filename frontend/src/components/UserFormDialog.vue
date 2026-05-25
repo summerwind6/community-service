@@ -116,7 +116,7 @@ async function handleSubmit() {
       if (isEdit.value) {
         await updateUser({ id: editId.value, realName: form.realName, phone: form.phone, email: form.email, status: form.status })
       } else {
-        await addUser(form, { params: { roleId: form.roleId } })
+        await addUser(form, { roleId: form.roleId })
       }
       visible.value = false
       emit('success')
