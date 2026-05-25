@@ -44,6 +44,11 @@
             <span>申请管理</span>
           </template>
           <el-menu-item index="/apply/list">申请列表</el-menu-item>
+          <el-menu-item index="/appointment/list">预约管理</el-menu-item>
+          <el-menu-item index="/notification/list">
+            <span>消息通知</span>
+            <el-badge :value="unreadCount" :hidden="unreadCount === 0" style="margin-left:8px;" />
+          </el-menu-item>
         </el-sub-menu>
 
         <el-sub-menu index="/stat">
@@ -96,12 +101,26 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
+import { getUnreadCount } from '@/api/notification/notification'
 
 const router = useRouter()
 const userStore = useUserStore()
 const isCollapse = ref(false)
+const unreadCount = ref(0)
 
-onMounted(() => {})
+onMounted(() => {
+  fetchUnreadCount()
+  setInterval(fetchUnreadCount, 30000)
+})
+
+async function fetchUnreadCount() {
+  try {
+    const res = await getUnreadCount()
+    unreadCount.value = res.data?.count || 0
+  } catch {
+    // ignore
+  }
+}
 
 function toggleCollapse() {
   isCollapse.value = !isCollapse.value

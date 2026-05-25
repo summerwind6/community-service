@@ -61,6 +61,18 @@ const routes = [
         meta: { title: '申请管理', icon: 'Tickets' }
       },
       {
+        path: 'appointment/list',
+        name: 'AppointmentManage',
+        component: () => import('@/views/appointment/AppointmentManage.vue'),
+        meta: { title: '预约管理', icon: 'Calendar' }
+      },
+      {
+        path: 'notification/list',
+        name: 'NotificationView',
+        component: () => import('@/views/notification/NotificationView.vue'),
+        meta: { title: '消息通知', icon: 'Bell' }
+      },
+      {
         path: 'stat/analysis',
         name: 'StatAnalysis',
         component: () => import('@/views/stat/StatAnalysis.vue'),

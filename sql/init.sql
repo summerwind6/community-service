@@ -285,6 +285,47 @@ INSERT INTO `sys_config` (`config_key`, `config_value`, `description`) VALUES
 ('contact_phone', '010-12345678', '系统联系电话'),
 ('org_name', '街道便民服务中心', '所属组织名称');
 
+-- -----------------------------------------------------
+-- 11. 预约表 (appointment)
+-- 存储居民预约办理时间记录
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `appointment`;
+CREATE TABLE `appointment` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+    `resident_name` VARCHAR(50) DEFAULT NULL COMMENT '预约人姓名',
+    `resident_phone` VARCHAR(20) DEFAULT NULL COMMENT '预约人电话',
+    `service_item_id` BIGINT DEFAULT NULL COMMENT '预约服务事项ID',
+    `service_item_name` VARCHAR(100) DEFAULT NULL COMMENT '服务事项名称',
+    `appointment_date` DATE DEFAULT NULL COMMENT '预约日期',
+    `time_slot` VARCHAR(20) DEFAULT NULL COMMENT '时间段：AM上午/PM下午',
+    `status` VARCHAR(20) DEFAULT 'PENDING' COMMENT '状态：PENDING待确认/CONFIRMED已确认/CANCELED已取消/COMPLETED已完成',
+    `remark` VARCHAR(500) DEFAULT NULL COMMENT '备注',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_appointment_date` (`appointment_date`),
+    KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='预约表';
+
+-- -----------------------------------------------------
+-- 12. 消息通知表 (notification)
+-- 存储站内信通知记录
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `notification`;
+CREATE TABLE `notification` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+    `title` VARCHAR(200) NOT NULL COMMENT '通知标题',
+    `content` TEXT DEFAULT NULL COMMENT '通知内容',
+    `type` VARCHAR(20) DEFAULT 'SYSTEM' COMMENT '类型：AUDIT审核通知/SYSTEM系统通知',
+    `target_id` BIGINT DEFAULT NULL COMMENT '关联目标ID（如申请单ID）',
+    `target_name` VARCHAR(50) DEFAULT NULL COMMENT '接收人姓名',
+    `target_phone` VARCHAR(20) DEFAULT NULL COMMENT '接收人电话',
+    `is_read` TINYINT DEFAULT 0 COMMENT '是否已读：0未读/1已读',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_is_read` (`is_read`),
+    KEY `idx_type` (`type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='消息通知表';
+
 -- =====================================================
 -- 数据库初始化完成
 -- 默认登录账号: admin / admin123
