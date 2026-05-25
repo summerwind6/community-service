@@ -1,17 +1,17 @@
 /*
- Navicat Premium Data Transfer
+ Navicat Premium Dump SQL
 
- Source Server         : localhost_3306
+ Source Server         : TEST
  Source Server Type    : MySQL
- Source Server Version : 80022 (8.0.22)
+ Source Server Version : 80026 (8.0.26)
  Source Host           : localhost:3306
  Source Schema         : community_service
 
  Target Server Type    : MySQL
- Target Server Version : 80022 (8.0.22)
+ Target Server Version : 80026 (8.0.26)
  File Encoding         : 65001
 
- Date: 25/05/2026 16:58:30
+ Date: 25/05/2026 17:06:36
 */
 
 SET NAMES utf8mb4;
@@ -44,7 +44,7 @@ CREATE TABLE `application_form`  (
   INDEX `idx_service_item_id`(`service_item_id` ASC) USING BTREE,
   INDEX `idx_status`(`status` ASC) USING BTREE,
   INDEX `idx_handler_id`(`handler_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 20 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '申请单表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 20 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '申请单表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of application_form
@@ -80,7 +80,7 @@ CREATE TABLE `appointment`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_appointment_date`(`appointment_date` ASC) USING BTREE,
   INDEX `idx_status`(`status` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '预约表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '预约表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of appointment
@@ -104,7 +104,7 @@ CREATE TABLE `audit_record`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_application_id`(`application_id` ASC) USING BTREE,
   INDEX `idx_auditor_id`(`auditor_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 20 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '审核记录表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 20 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '审核记录表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of audit_record
@@ -130,6 +130,25 @@ INSERT INTO `audit_record` VALUES (18, 11, 'STREET', 7, '李四', 'REJECTED', 'c
 INSERT INTO `audit_record` VALUES (19, 19, 'COMMUNITY', 1, '超级管理员', 'APPROVED', '社区受理员受理', '2026-05-18 17:28:09', '2026-05-18 17:28:09');
 
 -- ----------------------------
+-- Table structure for evaluation
+-- ----------------------------
+DROP TABLE IF EXISTS `evaluation`;
+CREATE TABLE `evaluation`  (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT 'Primary key',
+  `application_id` bigint NOT NULL COMMENT 'Related application id',
+  `score` int NOT NULL COMMENT 'Score 1-5',
+  `content` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT 'Evaluation content',
+  `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Create time',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_application_id`(`application_id` ASC) USING BTREE,
+  INDEX `idx_score`(`score` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = 'Service evaluation' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of evaluation
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for notification
 -- ----------------------------
 DROP TABLE IF EXISTS `notification`;
@@ -146,7 +165,7 @@ CREATE TABLE `notification`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_is_read`(`is_read` ASC) USING BTREE,
   INDEX `idx_type`(`type` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '消息通知表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '消息通知表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of notification
@@ -171,7 +190,7 @@ CREATE TABLE `resident_info`  (
   `deleted` tinyint NULL DEFAULT 0 COMMENT '逻辑删除：0-未删 1-已删',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_id_card`(`id_card` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '居民信息表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '居民信息表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of resident_info
@@ -206,7 +225,7 @@ CREATE TABLE `service_item`  (
   `deleted` tinyint NULL DEFAULT 0 COMMENT '逻辑删除：0-未删 1-已删',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_item_code`(`item_code` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '服务项目表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '服务项目表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of service_item
@@ -235,7 +254,7 @@ CREATE TABLE `sys_config`  (
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_config_key`(`config_key` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '系统配置表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '系统配置表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_config
@@ -269,7 +288,7 @@ CREATE TABLE `sys_permission`  (
   `deleted` tinyint NULL DEFAULT 0 COMMENT '逻辑删除：0-未删 1-已删',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_perm_code`(`perm_code` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 26 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '权限表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 26 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '权限表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_permission
@@ -315,7 +334,7 @@ CREATE TABLE `sys_role`  (
   `deleted` tinyint NULL DEFAULT 0 COMMENT '逻辑删除：0-未删 1-已删',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_role_code`(`role_code` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '角色表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '角色表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_role
@@ -336,7 +355,7 @@ CREATE TABLE `sys_role_perm`  (
   UNIQUE INDEX `uk_role_perm`(`role_id` ASC, `perm_id` ASC) USING BTREE,
   INDEX `idx_role_id`(`role_id` ASC) USING BTREE,
   INDEX `idx_perm_id`(`perm_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 56 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '角色权限关联表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 56 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '角色权限关联表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_role_perm
@@ -402,7 +421,7 @@ CREATE TABLE `sys_user`  (
   `deleted` tinyint NULL DEFAULT 0 COMMENT '逻辑删除：0-未删 1-已删',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_username`(`username` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 24 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '系统用户表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 24 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '系统用户表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_user
@@ -434,7 +453,7 @@ CREATE TABLE `sys_user_role`  (
   UNIQUE INDEX `uk_user_role`(`user_id` ASC, `role_id` ASC) USING BTREE,
   INDEX `idx_user_id`(`user_id` ASC) USING BTREE,
   INDEX `idx_role_id`(`role_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '用户角色关联表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '用户角色关联表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_user_role
