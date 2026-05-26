@@ -7,14 +7,18 @@ import com.community.common.BusinessException;
 import com.community.entity.dto.PageDTO;
 import com.community.entity.po.ApplicationForm;
 import com.community.entity.po.AuditRecord;
+import com.community.entity.po.Notification;
 import com.community.entity.po.ResidentInfo;
 import com.community.entity.po.ServiceItem;
 import com.community.entity.vo.PageVO;
 import com.community.mapper.ApplicationFormMapper;
 import com.community.service.ApplicationFormService;
 import com.community.service.AuditRecordService;
+import com.community.service.NotificationService;
 import com.community.service.ResidentInfoService;
 import com.community.service.ServiceItemService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +31,8 @@ import java.util.List;
 @Service
 public class ApplicationFormServiceImpl extends ServiceImpl<ApplicationFormMapper, ApplicationForm> implements ApplicationFormService {
 
+    private static final Logger log = LoggerFactory.getLogger(ApplicationFormServiceImpl.class);
+
     @Autowired
     private AuditRecordService auditRecordService;
 
@@ -36,10 +42,12 @@ public class ApplicationFormServiceImpl extends ServiceImpl<ApplicationFormMappe
     @Autowired
     private ServiceItemService serviceItemService;
 
+    @Autowired
+    private NotificationService notificationService;
+
     @Override
     @Transactional
     public ApplicationForm submitApplication(ApplicationForm form) {
-        // 校验居民是否存在
         if (form.getResidentId() != null) {
             ResidentInfo resident = residentInfoService.getResidentById(form.getResidentId());
             if (resident == null) {
@@ -47,7 +55,6 @@ public class ApplicationFormServiceImpl extends ServiceImpl<ApplicationFormMappe
             }
             form.setResidentName(resident.getName());
         }
-        // 校验服务事项是否存在且启用
         if (form.getServiceItemId() != null) {
             ServiceItem item = serviceItemService.getItemById(form.getServiceItemId());
             if (item == null) {
@@ -59,7 +66,6 @@ public class ApplicationFormServiceImpl extends ServiceImpl<ApplicationFormMappe
             form.setServiceItemName(item.getItemName());
             form.setFee(item.getFee());
         }
-        // 生成申请编号: AP + yyyyMMdd + 4位序号
         form.setApplyNo(generateApplyNo());
         form.setStatus("PENDING");
         form.setCreateTime(LocalDateTime.now());
@@ -105,7 +111,6 @@ public class ApplicationFormServiceImpl extends ServiceImpl<ApplicationFormMappe
         if (!"PENDING".equals(form.getStatus())) {
             throw new BusinessException("当前状态不允许初审，仅待受理状态可操作");
         }
-        // 更新申请单状态
         if ("REJECTED".equals(result)) {
             form.setStatus("REJECTED");
         } else {
@@ -116,7 +121,6 @@ public class ApplicationFormServiceImpl extends ServiceImpl<ApplicationFormMappe
         form.setHandlerName(auditorName);
         form.setUpdateTime(LocalDateTime.now());
         updateById(form);
-        // 创建审核记录
         AuditRecord record = new AuditRecord();
         record.setApplicationId(id);
         record.setAuditType("COMMUNITY");
@@ -127,6 +131,8 @@ public class ApplicationFormServiceImpl extends ServiceImpl<ApplicationFormMappe
         record.setAuditTime(LocalDateTime.now());
         record.setCreateTime(LocalDateTime.now());
         auditRecordService.createAuditRecord(record);
+        // 审核后自动发送通知给居民
+        sendAuditNotification(form, result, opinion);
     }
 
     @Override
@@ -139,7 +145,6 @@ public class ApplicationFormServiceImpl extends ServiceImpl<ApplicationFormMappe
         if (!"PROCESSING".equals(form.getStatus())) {
             throw new BusinessException("当前状态不允许复审，仅处理中状态可操作");
         }
-        // 更新申请单状态
         if ("REJECTED".equals(result)) {
             form.setStatus("REJECTED");
         } else {
@@ -150,7 +155,6 @@ public class ApplicationFormServiceImpl extends ServiceImpl<ApplicationFormMappe
         form.setHandlerName(auditorName);
         form.setUpdateTime(LocalDateTime.now());
         updateById(form);
-        // 创建审核记录
         AuditRecord record = new AuditRecord();
         record.setApplicationId(id);
         record.setAuditType("STREET");
@@ -161,6 +165,8 @@ public class ApplicationFormServiceImpl extends ServiceImpl<ApplicationFormMappe
         record.setAuditTime(LocalDateTime.now());
         record.setCreateTime(LocalDateTime.now());
         auditRecordService.createAuditRecord(record);
+        // 审核后自动发送通知给居民
+        sendAuditNotification(form, result, opinion);
     }
 
     @Override
@@ -178,7 +184,32 @@ public class ApplicationFormServiceImpl extends ServiceImpl<ApplicationFormMappe
         }
     }
 
-    /** 生成申请编号: AP + yyyyMMdd + 4位当日序号 */
+    /** 审核后向居民发送通知 */
+    private void sendAuditNotification(ApplicationForm form, String result, String opinion) {
+        try {
+            String residentPhone = "";
+            if (form.getResidentId() != null) {
+                ResidentInfo resident = residentInfoService.getResidentById(form.getResidentId());
+                if (resident != null) {
+                    residentPhone = resident.getPhone();
+                }
+            }
+            String action = "REJECTED".equals(result) ? "已被驳回" : "已通过";
+            Notification notification = new Notification();
+            notification.setTitle("您的申请" + form.getApplyNo() + action);
+            notification.setContent(opinion != null && !opinion.isEmpty() ? opinion : "您的便民服务申请" + form.getApplyNo() + action + "，请知悉。");
+            notification.setType("AUDIT");
+            notification.setTargetId(form.getId());
+            notification.setTargetName(form.getResidentName());
+            notification.setTargetPhone(residentPhone);
+            notification.setIsRead(0);
+            notification.setCreateTime(LocalDateTime.now());
+            notificationService.sendNotification(notification);
+        } catch (Exception e) {
+            log.warn("审核通知发送失败, applyId={}, applyNo={}: {}", form.getId(), form.getApplyNo(), e.getMessage());
+        }
+    }
+
     private String generateApplyNo() {
         String datePrefix = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         LambdaQueryWrapper<ApplicationForm> wrapper = new LambdaQueryWrapper<>();

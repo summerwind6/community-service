@@ -24,6 +24,16 @@
               <el-option label="已完成" value="COMPLETED" />
             </el-select>
           </el-form-item>
+          <el-form-item label="预约日期">
+            <el-date-picker
+              v-model="searchForm.dateRange"
+              type="daterange"
+              range-separator="至"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+              value-format="YYYY-MM-DD"
+            />
+          </el-form-item>
           <el-form-item>
             <el-button type="primary" @click="handleSearch">查询</el-button>
             <el-button @click="resetSearch">重置</el-button>
@@ -120,7 +130,7 @@
 
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
-import { getAppointmentList, addAppointment, updateAppointmentStatus } from '@/api/appointment/appointment'
+import { getAppointmentList, addAppointment, confirmAppointment, cancelAppointment, completeAppointment } from '@/api/appointment/appointment'
 import { getEnabledItems } from '@/api/item/item'
 
 const viewMode = ref('list')
@@ -136,7 +146,7 @@ const submitting = ref(false)
 const formRef = ref()
 const serviceItems = ref([])
 
-const searchForm = reactive({ keyword: '', status: '' })
+const searchForm = reactive({ keyword: '', status: '', dateRange: null })
 
 const form = reactive({
   residentName: '',
@@ -172,7 +182,14 @@ async function loadData() {
   loading.value = true
   try {
     const [listRes, allRes] = await Promise.all([
-      getAppointmentList({ pageNum: pageNum.value, pageSize: pageSize.value, keyword: searchForm.keyword || undefined, status: searchForm.status || undefined }),
+      getAppointmentList({
+        pageNum: pageNum.value,
+        pageSize: pageSize.value,
+        keyword: searchForm.keyword || undefined,
+        status: searchForm.status || undefined,
+        startDate: searchForm.dateRange?.[0] || undefined,
+        endDate: searchForm.dateRange?.[1] || undefined
+      }),
       getAppointmentList({ pageNum: 1, pageSize: 1000 })
     ])
     tableData.value = listRes.data?.records || []
@@ -186,7 +203,7 @@ async function loadData() {
 }
 
 function handleSearch() { pageNum.value = 1; loadData() }
-function resetSearch() { searchForm.keyword = ''; searchForm.status = ''; pageNum.value = 1; loadData() }
+function resetSearch() { searchForm.keyword = ''; searchForm.status = ''; searchForm.dateRange = null; pageNum.value = 1; loadData() }
 
 async function handleAdd() {
   try {
@@ -230,9 +247,9 @@ async function handleSubmit() {
   })
 }
 
-async function handleConfirm(row) { await updateAppointmentStatus(row.id, 'CONFIRMED'); loadData() }
-async function handleCancel(row) { await updateAppointmentStatus(row.id, 'CANCELED'); loadData() }
-async function handleComplete(row) { await updateAppointmentStatus(row.id, 'COMPLETED'); loadData() }
+async function handleConfirm(row) { await confirmAppointment(row.id); loadData() }
+async function handleCancel(row) { await cancelAppointment(row.id); loadData() }
+async function handleComplete(row) { await completeAppointment(row.id); loadData() }
 
 function handleCalendarDayClick(data) {
   viewMode.value = 'list'

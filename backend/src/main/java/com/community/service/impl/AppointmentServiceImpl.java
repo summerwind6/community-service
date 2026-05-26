@@ -10,13 +10,14 @@ import com.community.mapper.AppointmentMapper;
 import com.community.service.AppointmentService;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Service
 public class AppointmentServiceImpl extends ServiceImpl<AppointmentMapper, Appointment> implements AppointmentService {
 
     @Override
-    public PageVO<Appointment> getAppointmentList(PageDTO pageDTO, String status) {
+    public PageVO<Appointment> getAppointmentList(PageDTO pageDTO, String status, LocalDate startDate, LocalDate endDate) {
         Page<Appointment> page = new Page<>(pageDTO.getPageNum(), pageDTO.getPageSize());
         LambdaQueryWrapper<Appointment> wrapper = new LambdaQueryWrapper<>();
         if (pageDTO.getKeyword() != null && !pageDTO.getKeyword().isEmpty()) {
@@ -25,6 +26,12 @@ public class AppointmentServiceImpl extends ServiceImpl<AppointmentMapper, Appoi
         }
         if (status != null && !status.isEmpty()) {
             wrapper.eq(Appointment::getStatus, status);
+        }
+        if (startDate != null) {
+            wrapper.ge(Appointment::getAppointmentDate, startDate);
+        }
+        if (endDate != null) {
+            wrapper.le(Appointment::getAppointmentDate, endDate);
         }
         wrapper.orderByDesc(Appointment::getAppointmentDate).orderByDesc(Appointment::getCreateTime);
         page(page, wrapper);

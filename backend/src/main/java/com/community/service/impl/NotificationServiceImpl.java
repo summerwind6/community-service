@@ -16,11 +16,14 @@ import java.time.LocalDateTime;
 public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Notification> implements NotificationService {
 
     @Override
-    public PageVO<Notification> getNotificationList(PageDTO pageDTO, String type) {
+    public PageVO<Notification> getNotificationList(PageDTO pageDTO, String type, Integer isRead) {
         Page<Notification> page = new Page<>(pageDTO.getPageNum(), pageDTO.getPageSize());
         LambdaQueryWrapper<Notification> wrapper = new LambdaQueryWrapper<>();
         if (type != null && !type.isEmpty()) {
             wrapper.eq(Notification::getType, type);
+        }
+        if (isRead != null) {
+            wrapper.eq(Notification::getIsRead, isRead);
         }
         wrapper.orderByDesc(Notification::getCreateTime);
         page(page, wrapper);

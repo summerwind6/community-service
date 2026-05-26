@@ -4,9 +4,9 @@
 
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/community_service?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=true
+    url: jdbc:mysql://localhost:3306/community_service?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=true&allowPublicKeyRetrieval=true
     username: root
-    password: 3dysywjel
+    password: 208598
 
   data:
     redis:

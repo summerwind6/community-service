@@ -38,6 +38,9 @@ public class ShiroConfig {
         filterChainDefinitionMap.put("/api/evaluation", "anon");
         filterChainDefinitionMap.put("/api/swagger-ui/**", "anon");
         filterChainDefinitionMap.put("/api/v3/api-docs/**", "anon");
+        // 免登录：预约新增、通知标记已读
+        filterChainDefinitionMap.put("/api/appointment", "anon");
+        filterChainDefinitionMap.put("/api/notification/*/read", "anon");
         filterChainDefinitionMap.put("/api/**", "authc");
 
         shiroFilter.setFilterChainDefinitionMap(filterChainDefinitionMap);

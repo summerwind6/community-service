@@ -360,3 +360,50 @@ SELECT 2, id FROM sys_permission WHERE perm_code IN ('evaluation', 'evaluation:l
 
 INSERT INTO `sys_role_perm` (`role_id`, `perm_id`)
 SELECT 3, id FROM sys_permission WHERE perm_code IN ('evaluation', 'evaluation:list', 'evaluation:stats', 'report:export');
+
+-- =====================================================
+-- [增量更新] 宋梓瑜 - 预约管理+消息通知 权限码及角色分配
+-- 已有数据库执行以下 SQL 即可，新建库无需单独执行
+-- =====================================================
+
+-- 插入预约管理权限码
+INSERT IGNORE INTO `sys_permission` (`perm_name`, `perm_code`, `perm_type`, `parent_id`, `url`, `sort_order`, `status`) VALUES
+('预约管理', 'appointment', 'menu', 0, '/appointment', 6, 1);
+
+INSERT IGNORE INTO `sys_permission` (`perm_name`, `perm_code`, `perm_type`, `parent_id`, `url`, `sort_order`, `status`)
+SELECT '预约列表', 'appointment:list', 'button', id, null, 1, 1
+FROM `sys_permission` WHERE `perm_code` = 'appointment';
+
+INSERT IGNORE INTO `sys_permission` (`perm_name`, `perm_code`, `perm_type`, `parent_id`, `url`, `sort_order`, `status`)
+SELECT '预约管理', 'appointment:manage', 'button', id, null, 2, 1
+FROM `sys_permission` WHERE `perm_code` = 'appointment';
+
+-- 插入消息通知权限码
+INSERT IGNORE INTO `sys_permission` (`perm_name`, `perm_code`, `perm_type`, `parent_id`, `url`, `sort_order`, `status`) VALUES
+('消息通知', 'notification', 'menu', 0, '/notification', 7, 1);
+
+INSERT IGNORE INTO `sys_permission` (`perm_name`, `perm_code`, `perm_type`, `parent_id`, `url`, `sort_order`, `status`)
+SELECT '通知列表', 'notification:list', 'button', id, null, 1, 1
+FROM `sys_permission` WHERE `perm_code` = 'notification';
+
+INSERT IGNORE INTO `sys_permission` (`perm_name`, `perm_code`, `perm_type`, `parent_id`, `url`, `sort_order`, `status`)
+SELECT '发送通知', 'notification:send', 'button', id, null, 2, 1
+FROM `sys_permission` WHERE `perm_code` = 'notification';
+
+-- CLERK 获得预约+通知权限
+INSERT IGNORE INTO `sys_role_perm` (`role_id`, `perm_id`)
+SELECT 2, id FROM `sys_permission` WHERE `perm_code` IN (
+    'appointment', 'appointment:list', 'appointment:manage',
+    'notification', 'notification:list', 'notification:send'
+);
+
+-- REVIEWER 获得预约+通知权限
+INSERT IGNORE INTO `sys_role_perm` (`role_id`, `perm_id`)
+SELECT 3, id FROM `sys_permission` WHERE `perm_code` IN (
+    'appointment', 'appointment:list', 'appointment:manage',
+    'notification', 'notification:list', 'notification:send'
+);
+
+-- 修旧Bug：CLERK/REVIEWER 服务列表权限 ID10→9
+DELETE FROM `sys_role_perm` WHERE `role_id` IN (2, 3) AND `perm_id` = 10;
+INSERT IGNORE INTO `sys_role_perm` (`role_id`, `perm_id`) VALUES (2, 9), (3, 9);

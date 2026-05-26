@@ -7,6 +7,7 @@ import com.community.entity.vo.PageVO;
 import com.community.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,11 +24,13 @@ public class NotificationController {
     @Operation(summary = "获取通知列表")
     @GetMapping("/list")
     public Result<PageVO<Notification>> list(PageDTO pageDTO,
-                                              @RequestParam(required = false) String type) {
-        return Result.success(notificationService.getNotificationList(pageDTO, type));
+                                              @RequestParam(required = false) String type,
+                                              @RequestParam(required = false) Integer isRead) {
+        return Result.success(notificationService.getNotificationList(pageDTO, type, isRead));
     }
 
     @Operation(summary = "发送通知")
+    @RequiresPermissions("notification:send")
     @PostMapping
     public Result<Notification> send(@RequestBody Notification notification) {
         return Result.success(notificationService.sendNotification(notification));

@@ -7,7 +7,7 @@ import com.community.entity.vo.PageVO;
 
 public interface NotificationService extends IService<Notification> {
 
-    PageVO<Notification> getNotificationList(PageDTO pageDTO, String type);
+    PageVO<Notification> getNotificationList(PageDTO pageDTO, String type, Integer isRead);
 
     Notification sendNotification(Notification notification);
 
