@@ -52,6 +52,9 @@ public class ApplicationForm implements Serializable {
     @TableField("remark")
     private String remark;
 
+    @TableField(exist = false)
+    private Boolean evaluated;
+
     @TableField("create_time")
     private LocalDateTime createTime;
 
