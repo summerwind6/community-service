@@ -25,6 +25,9 @@ public class ApplicationForm implements Serializable {
     @TableField("resident_name")
     private String residentName;
 
+    @TableField("gender")
+    private String gender;
+
     @TableField("service_item_id")
     private Long serviceItemId;
 
@@ -51,6 +54,9 @@ public class ApplicationForm implements Serializable {
 
     @TableField("remark")
     private String remark;
+
+    @TableField(exist = false)
+    private Boolean evaluated;
 
     @TableField("create_time")
     private LocalDateTime createTime;

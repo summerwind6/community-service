@@ -42,11 +42,17 @@ public class ApplyController {
         return Result.success(applicationFormService.submitApplication(form));
     }
 
+    @Operation(summary = "手机号查询申请进度")
+    @GetMapping("/progress")
+    public Result<Object> progress(@RequestParam String phone) {
+        return Result.success(applicationFormService.getApplicationProgressByPhone(phone));
+    }
+
     @Operation(summary = "获取申请列表（分页+筛选）")
     @RequiresPermissions("apply:list")
     @GetMapping("/list")
     public Result<PageVO<ApplicationForm>> list(PageDTO pageDTO,
-                                                 @RequestParam(required = false) String status) {
+                                                @RequestParam(required = false) String status) {
         return Result.success(applicationFormService.getApplicationList(pageDTO, status));
     }
 

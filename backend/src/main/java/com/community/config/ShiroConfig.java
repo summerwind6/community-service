@@ -35,11 +35,12 @@ public class ShiroConfig {
 
         Map<String, String> filterChainDefinitionMap = new LinkedHashMap<>();
         filterChainDefinitionMap.put("/api/auth/login", "anon");
-        filterChainDefinitionMap.put("/api/evaluation", "anon");
+        filterChainDefinitionMap.put("/api/evaluation/**", "anon");
         filterChainDefinitionMap.put("/api/swagger-ui/**", "anon");
         filterChainDefinitionMap.put("/api/v3/api-docs/**", "anon");
+        filterChainDefinitionMap.put("/api/upload/**", "anon");
         // 免登录：预约新增、通知标记已读
-        filterChainDefinitionMap.put("/api/appointment", "anon");
+        filterChainDefinitionMap.put("/api/appointment/**", "anon");
         filterChainDefinitionMap.put("/api/notification/*/read", "anon");
         filterChainDefinitionMap.put("/api/**", "authc");
 

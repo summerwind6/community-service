@@ -15,20 +15,20 @@ USE community_service;
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `sys_user`;
 CREATE TABLE `sys_user` (
-    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-    `username` VARCHAR(50) NOT NULL COMMENT '用户名（唯一）',
-    `password` VARCHAR(100) NOT NULL COMMENT '密码（MD5加密）',
-    `salt` VARCHAR(50) NOT NULL COMMENT '密码盐值',
-    `real_name` VARCHAR(50) DEFAULT NULL COMMENT '真实姓名',
-    `phone` VARCHAR(20) DEFAULT NULL COMMENT '手机号码',
-    `email` VARCHAR(100) DEFAULT NULL COMMENT '邮箱',
-    `avatar` VARCHAR(255) DEFAULT NULL COMMENT '头像地址',
-    `status` TINYINT DEFAULT 1 COMMENT '状态：0-禁用 1-正常',
-    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    `deleted` TINYINT DEFAULT 0 COMMENT '逻辑删除：0-未删 1-已删',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_username` (`username`)
+                            `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+                            `username` VARCHAR(50) NOT NULL COMMENT '用户名（唯一）',
+                            `password` VARCHAR(100) NOT NULL COMMENT '密码（MD5加密）',
+                            `salt` VARCHAR(50) NOT NULL COMMENT '密码盐值',
+                            `real_name` VARCHAR(50) DEFAULT NULL COMMENT '真实姓名',
+                            `phone` VARCHAR(20) DEFAULT NULL COMMENT '手机号码',
+                            `email` VARCHAR(100) DEFAULT NULL COMMENT '邮箱',
+                            `avatar` VARCHAR(255) DEFAULT NULL COMMENT '头像地址',
+                            `status` TINYINT DEFAULT 1 COMMENT '状态：0-禁用 1-正常',
+                            `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                            `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                            `deleted` TINYINT DEFAULT 0 COMMENT '逻辑删除：0-未删 1-已删',
+                            PRIMARY KEY (`id`),
+                            UNIQUE KEY `uk_username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统用户表';
 
 -- -----------------------------------------------------
@@ -37,16 +37,16 @@ CREATE TABLE `sys_user` (
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `sys_role`;
 CREATE TABLE `sys_role` (
-    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-    `role_name` VARCHAR(50) NOT NULL COMMENT '角色名称',
-    `role_code` VARCHAR(50) NOT NULL COMMENT '角色编码（唯一）',
-    `description` VARCHAR(200) DEFAULT NULL COMMENT '角色描述',
-    `status` TINYINT DEFAULT 1 COMMENT '状态：0-禁用 1-正常',
-    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    `deleted` TINYINT DEFAULT 0 COMMENT '逻辑删除：0-未删 1-已删',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_role_code` (`role_code`)
+                            `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+                            `role_name` VARCHAR(50) NOT NULL COMMENT '角色名称',
+                            `role_code` VARCHAR(50) NOT NULL COMMENT '角色编码（唯一）',
+                            `description` VARCHAR(200) DEFAULT NULL COMMENT '角色描述',
+                            `status` TINYINT DEFAULT 1 COMMENT '状态：0-禁用 1-正常',
+                            `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                            `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                            `deleted` TINYINT DEFAULT 0 COMMENT '逻辑删除：0-未删 1-已删',
+                            PRIMARY KEY (`id`),
+                            UNIQUE KEY `uk_role_code` (`role_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色表';
 
 -- -----------------------------------------------------
@@ -55,19 +55,19 @@ CREATE TABLE `sys_role` (
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `sys_permission`;
 CREATE TABLE `sys_permission` (
-    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-    `perm_name` VARCHAR(50) NOT NULL COMMENT '权限名称',
-    `perm_code` VARCHAR(100) NOT NULL COMMENT '权限编码（唯一）',
-    `perm_type` VARCHAR(20) DEFAULT 'menu' COMMENT '权限类型：menu-菜单 button-按钮',
-    `parent_id` BIGINT DEFAULT 0 COMMENT '父级ID（顶级为0）',
-    `url` VARCHAR(200) DEFAULT NULL COMMENT '路由路径',
-    `description` VARCHAR(200) DEFAULT NULL COMMENT '权限描述',
-    `sort_order` INT DEFAULT 0 COMMENT '排序号',
-    `status` TINYINT DEFAULT 1 COMMENT '状态：0-禁用 1-正常',
-    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `deleted` TINYINT DEFAULT 0 COMMENT '逻辑删除：0-未删 1-已删',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_perm_code` (`perm_code`)
+                                  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+                                  `perm_name` VARCHAR(50) NOT NULL COMMENT '权限名称',
+                                  `perm_code` VARCHAR(100) NOT NULL COMMENT '权限编码（唯一）',
+                                  `perm_type` VARCHAR(20) DEFAULT 'menu' COMMENT '权限类型：menu-菜单 button-按钮',
+                                  `parent_id` BIGINT DEFAULT 0 COMMENT '父级ID（顶级为0）',
+                                  `url` VARCHAR(200) DEFAULT NULL COMMENT '路由路径',
+                                  `description` VARCHAR(200) DEFAULT NULL COMMENT '权限描述',
+                                  `sort_order` INT DEFAULT 0 COMMENT '排序号',
+                                  `status` TINYINT DEFAULT 1 COMMENT '状态：0-禁用 1-正常',
+                                  `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                  `deleted` TINYINT DEFAULT 0 COMMENT '逻辑删除：0-未删 1-已删',
+                                  PRIMARY KEY (`id`),
+                                  UNIQUE KEY `uk_perm_code` (`perm_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='权限表';
 
 -- -----------------------------------------------------
@@ -76,13 +76,13 @@ CREATE TABLE `sys_permission` (
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `sys_role_perm`;
 CREATE TABLE `sys_role_perm` (
-    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-    `role_id` BIGINT NOT NULL COMMENT '角色ID',
-    `perm_id` BIGINT NOT NULL COMMENT '权限ID',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_role_perm` (`role_id`, `perm_id`),
-    KEY `idx_role_id` (`role_id`),
-    KEY `idx_perm_id` (`perm_id`)
+                                 `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+                                 `role_id` BIGINT NOT NULL COMMENT '角色ID',
+                                 `perm_id` BIGINT NOT NULL COMMENT '权限ID',
+                                 PRIMARY KEY (`id`),
+                                 UNIQUE KEY `uk_role_perm` (`role_id`, `perm_id`),
+                                 KEY `idx_role_id` (`role_id`),
+                                 KEY `idx_perm_id` (`perm_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色权限关联表';
 
 -- -----------------------------------------------------
@@ -91,13 +91,13 @@ CREATE TABLE `sys_role_perm` (
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `sys_user_role`;
 CREATE TABLE `sys_user_role` (
-    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-    `user_id` BIGINT NOT NULL COMMENT '用户ID',
-    `role_id` BIGINT NOT NULL COMMENT '角色ID',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_user_role` (`user_id`, `role_id`),
-    KEY `idx_user_id` (`user_id`),
-    KEY `idx_role_id` (`role_id`)
+                                 `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+                                 `user_id` BIGINT NOT NULL COMMENT '用户ID',
+                                 `role_id` BIGINT NOT NULL COMMENT '角色ID',
+                                 PRIMARY KEY (`id`),
+                                 UNIQUE KEY `uk_user_role` (`user_id`, `role_id`),
+                                 KEY `idx_user_id` (`user_id`),
+                                 KEY `idx_role_id` (`role_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户角色关联表';
 
 -- -----------------------------------------------------
@@ -106,19 +106,19 @@ CREATE TABLE `sys_user_role` (
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `resident_info`;
 CREATE TABLE `resident_info` (
-    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-    `name` VARCHAR(50) NOT NULL COMMENT '姓名',
-    `id_card` VARCHAR(18) DEFAULT NULL COMMENT '身份证号',
-    `phone` VARCHAR(20) DEFAULT NULL COMMENT '联系电话',
-    `address` VARCHAR(255) DEFAULT NULL COMMENT '详细地址',
-    `community` VARCHAR(100) DEFAULT NULL COMMENT '所属社区',
-    `gender` CHAR(1) DEFAULT NULL COMMENT '性别：M-男 F-女',
-    `birthday` DATE DEFAULT NULL COMMENT '出生日期',
-    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    `deleted` TINYINT DEFAULT 0 COMMENT '逻辑删除：0-未删 1-已删',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_id_card` (`id_card`)
+                                 `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+                                 `name` VARCHAR(50) NOT NULL COMMENT '姓名',
+                                 `id_card` VARCHAR(18) DEFAULT NULL COMMENT '身份证号',
+                                 `phone` VARCHAR(20) DEFAULT NULL COMMENT '联系电话',
+                                 `address` VARCHAR(255) DEFAULT NULL COMMENT '详细地址',
+                                 `community` VARCHAR(100) DEFAULT NULL COMMENT '所属社区',
+                                 `gender` CHAR(1) DEFAULT NULL COMMENT '性别：M-男 F-女',
+                                 `birthday` DATE DEFAULT NULL COMMENT '出生日期',
+                                 `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                 `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                 `deleted` TINYINT DEFAULT 0 COMMENT '逻辑删除：0-未删 1-已删',
+                                 PRIMARY KEY (`id`),
+                                 UNIQUE KEY `uk_id_card` (`id_card`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='居民信息表';
 
 -- -----------------------------------------------------
@@ -127,20 +127,20 @@ CREATE TABLE `resident_info` (
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `service_item`;
 CREATE TABLE `service_item` (
-    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-    `item_name` VARCHAR(100) NOT NULL COMMENT '服务项目名称',
-    `item_code` VARCHAR(50) NOT NULL COMMENT '项目编码（唯一）',
-    `category` VARCHAR(50) DEFAULT NULL COMMENT '服务类别',
-    `description` TEXT DEFAULT NULL COMMENT '项目描述',
-    `fee` DECIMAL(10,2) DEFAULT 0.00 COMMENT '费用（元）',
-    `processing_days` INT DEFAULT 7 COMMENT '预计处理天数',
-    `required_docs` TEXT DEFAULT NULL COMMENT '所需材料说明',
-    `status` TINYINT DEFAULT 1 COMMENT '状态：0-停用 1-启用',
-    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    `deleted` TINYINT DEFAULT 0 COMMENT '逻辑删除：0-未删 1-已删',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_item_code` (`item_code`)
+                                `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+                                `item_name` VARCHAR(100) NOT NULL COMMENT '服务项目名称',
+                                `item_code` VARCHAR(50) NOT NULL COMMENT '项目编码（唯一）',
+                                `category` VARCHAR(50) DEFAULT NULL COMMENT '服务类别',
+                                `description` TEXT DEFAULT NULL COMMENT '项目描述',
+                                `fee` DECIMAL(10,2) DEFAULT 0.00 COMMENT '费用（元）',
+                                `processing_days` INT DEFAULT 7 COMMENT '预计处理天数',
+                                `required_docs` TEXT DEFAULT NULL COMMENT '所需材料说明',
+                                `status` TINYINT DEFAULT 1 COMMENT '状态：0-停用 1-启用',
+                                `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                `deleted` TINYINT DEFAULT 0 COMMENT '逻辑删除：0-未删 1-已删',
+                                PRIMARY KEY (`id`),
+                                UNIQUE KEY `uk_item_code` (`item_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='服务项目表';
 
 -- -----------------------------------------------------
@@ -149,28 +149,29 @@ CREATE TABLE `service_item` (
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `application_form`;
 CREATE TABLE `application_form` (
-    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-    `apply_no` VARCHAR(50) NOT NULL COMMENT '申请编号（唯一）',
-    `resident_id` BIGINT DEFAULT NULL COMMENT '申请人ID（居民表）',
-    `resident_name` VARCHAR(50) DEFAULT NULL COMMENT '申请人姓名',
-    `service_item_id` BIGINT NOT NULL COMMENT '服务项目ID',
-    `service_item_name` VARCHAR(100) DEFAULT NULL COMMENT '服务项目名称',
-    `apply_content` TEXT DEFAULT NULL COMMENT '申请内容描述',
-    `attachments` TEXT DEFAULT NULL COMMENT '附件路径（JSON数组）',
-    `status` VARCHAR(20) DEFAULT 'PENDING' COMMENT '状态：PENDING待受理/PROCESSING处理中/APPROVED通过/REJECTED驳回/COMPLETED已完成',
-    `fee` DECIMAL(10,2) DEFAULT 0.00 COMMENT '实际费用',
-    `handler_id` BIGINT DEFAULT NULL COMMENT '当前处理人ID',
-    `handler_name` VARCHAR(50) DEFAULT NULL COMMENT '当前处理人姓名',
-    `remark` VARCHAR(500) DEFAULT NULL COMMENT '备注',
-    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    `deleted` TINYINT DEFAULT 0 COMMENT '逻辑删除：0-未删 1-已删',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_apply_no` (`apply_no`),
-    KEY `idx_resident_id` (`resident_id`),
-    KEY `idx_service_item_id` (`service_item_id`),
-    KEY `idx_status` (`status`),
-    KEY `idx_handler_id` (`handler_id`)
+                                    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+                                    `apply_no` VARCHAR(50) NOT NULL COMMENT '申请编号（唯一）',
+                                    `resident_id` BIGINT DEFAULT NULL COMMENT '申请人ID（居民表）',
+                                    `resident_name` VARCHAR(50) DEFAULT NULL COMMENT '申请人姓名',
+                                    `gender` CHAR(1) DEFAULT NULL COMMENT '性别：M-男 F-女',
+                                    `service_item_id` BIGINT NOT NULL COMMENT '服务项目ID',
+                                    `service_item_name` VARCHAR(100) DEFAULT NULL COMMENT '服务项目名称',
+                                    `apply_content` TEXT DEFAULT NULL COMMENT '申请内容描述',
+                                    `attachments` TEXT DEFAULT NULL COMMENT '附件路径（JSON数组）',
+                                    `status` VARCHAR(20) DEFAULT 'PENDING' COMMENT '状态：PENDING待受理/PROCESSING处理中/APPROVED通过/REJECTED驳回/COMPLETED已完成',
+                                    `fee` DECIMAL(10,2) DEFAULT 0.00 COMMENT '实际费用',
+                                    `handler_id` BIGINT DEFAULT NULL COMMENT '当前处理人ID',
+                                    `handler_name` VARCHAR(50) DEFAULT NULL COMMENT '当前处理人姓名',
+                                    `remark` VARCHAR(500) DEFAULT NULL COMMENT '备注',
+                                    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                    `deleted` TINYINT DEFAULT 0 COMMENT '逻辑删除：0-未删 1-已删',
+                                    PRIMARY KEY (`id`),
+                                    UNIQUE KEY `uk_apply_no` (`apply_no`),
+                                    KEY `idx_resident_id` (`resident_id`),
+                                    KEY `idx_service_item_id` (`service_item_id`),
+                                    KEY `idx_status` (`status`),
+                                    KEY `idx_handler_id` (`handler_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='申请单表';
 
 -- -----------------------------------------------------
@@ -179,18 +180,18 @@ CREATE TABLE `application_form` (
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `audit_record`;
 CREATE TABLE `audit_record` (
-    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-    `application_id` BIGINT NOT NULL COMMENT '申请单ID',
-    `audit_type` VARCHAR(20) NOT NULL COMMENT '审核类型：COMMUNITY社区审核/STREET街道审核',
-    `auditor_id` BIGINT NOT NULL COMMENT '审核人ID',
-    `auditor_name` VARCHAR(50) DEFAULT NULL COMMENT '审核人姓名',
-    `audit_result` VARCHAR(20) NOT NULL COMMENT '审核结果：APPROVED通过/REJECTED驳回/PENDING待审核',
-    `audit_opinion` VARCHAR(500) DEFAULT NULL COMMENT '审核意见',
-    `audit_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '审核时间',
-    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    PRIMARY KEY (`id`),
-    KEY `idx_application_id` (`application_id`),
-    KEY `idx_auditor_id` (`auditor_id`)
+                                `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+                                `application_id` BIGINT NOT NULL COMMENT '申请单ID',
+                                `audit_type` VARCHAR(20) NOT NULL COMMENT '审核类型：COMMUNITY社区审核/STREET街道审核',
+                                `auditor_id` BIGINT NOT NULL COMMENT '审核人ID',
+                                `auditor_name` VARCHAR(50) DEFAULT NULL COMMENT '审核人姓名',
+                                `audit_result` VARCHAR(20) NOT NULL COMMENT '审核结果：APPROVED通过/REJECTED驳回/PENDING待审核',
+                                `audit_opinion` VARCHAR(500) DEFAULT NULL COMMENT '审核意见',
+                                `audit_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '审核时间',
+                                `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                PRIMARY KEY (`id`),
+                                KEY `idx_application_id` (`application_id`),
+                                KEY `idx_auditor_id` (`auditor_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='审核记录表';
 
 -- =====================================================
@@ -199,31 +200,31 @@ CREATE TABLE `audit_record` (
 
 -- 插入默认角色数据
 INSERT INTO `sys_role` (`role_name`, `role_code`, `description`, `status`) VALUES
-('超级管理员', 'ADMIN', '拥有系统所有权限', 1),
-('社区受理员', 'CLERK', '负责受理居民的服务申请', 1),
-('街道审核员', 'REVIEWER', '负责审核服务申请', 1);
+                                                                               ('超级管理员', 'ADMIN', '拥有系统所有权限', 1),
+                                                                               ('社区受理员', 'CLERK', '负责受理居民的服务申请', 1),
+                                                                               ('街道审核员', 'REVIEWER', '负责审核服务申请', 1);
 
 -- 插入默认权限数据（菜单级权限）
 INSERT INTO `sys_permission` (`perm_name`, `perm_code`, `perm_type`, `parent_id`, `url`, `sort_order`, `status`) VALUES
-('仪表盘', 'stat:dashboard', 'menu', 0, '/dashboard', 1, 1),
-('系统管理', 'system', 'menu', 0, '/system', 2, 1),
-('用户管理', 'user:list', 'button', 2, null, 1, 1),
-('用户新增', 'user:add', 'button', 2, null, 2, 1),
-('用户修改', 'user:update', 'button', 2, null, 3, 1),
-('用户详情', 'user:detail', 'button', 2, null, 4, 1),
-('角色管理', 'role:list', 'button', 2, null, 5, 1),
-('服务管理', 'service', 'menu', 0, '/service', 3, 1),
-('服务列表', 'item:list', 'button', 3, null, 1, 1),
-('服务新增', 'item:add', 'button', 3, null, 2, 1),
-('服务修改', 'item:update', 'button', 3, null, 3, 1),
-('服务删除', 'item:delete', 'button', 3, null, 4, 1),
-('服务详情', 'item:detail', 'button', 3, null, 5, 1),
-('申请管理', 'apply', 'menu', 0, '/apply', 4, 1),
-('申请列表', 'apply:list', 'button', 4, null, 1, 1),
-('申请审核', 'apply:audit', 'button', 4, null, 2, 1),
-('统计分析', 'stat', 'menu', 0, '/stat', 5, 1),
-('趋势分析', 'stat:trend', 'button', 5, null, 1, 1),
-('分布统计', 'stat:distribution', 'button', 5, null, 2, 1);
+                                                                                                                     ('仪表盘', 'stat:dashboard', 'menu', 0, '/dashboard', 1, 1),
+                                                                                                                     ('系统管理', 'system', 'menu', 0, '/system', 2, 1),
+                                                                                                                     ('用户管理', 'user:list', 'button', 2, null, 1, 1),
+                                                                                                                     ('用户新增', 'user:add', 'button', 2, null, 2, 1),
+                                                                                                                     ('用户修改', 'user:update', 'button', 2, null, 3, 1),
+                                                                                                                     ('用户详情', 'user:detail', 'button', 2, null, 4, 1),
+                                                                                                                     ('角色管理', 'role:list', 'button', 2, null, 5, 1),
+                                                                                                                     ('服务管理', 'service', 'menu', 0, '/service', 3, 1),
+                                                                                                                     ('服务列表', 'item:list', 'button', 3, null, 1, 1),
+                                                                                                                     ('服务新增', 'item:add', 'button', 3, null, 2, 1),
+                                                                                                                     ('服务修改', 'item:update', 'button', 3, null, 3, 1),
+                                                                                                                     ('服务删除', 'item:delete', 'button', 3, null, 4, 1),
+                                                                                                                     ('服务详情', 'item:detail', 'button', 3, null, 5, 1),
+                                                                                                                     ('申请管理', 'apply', 'menu', 0, '/apply', 4, 1),
+                                                                                                                     ('申请列表', 'apply:list', 'button', 4, null, 1, 1),
+                                                                                                                     ('申请审核', 'apply:audit', 'button', 4, null, 2, 1),
+                                                                                                                     ('统计分析', 'stat', 'menu', 0, '/stat', 5, 1),
+                                                                                                                     ('趋势分析', 'stat:trend', 'button', 5, null, 1, 1),
+                                                                                                                     ('分布统计', 'stat:distribution', 'button', 5, null, 2, 1);
 
 -- 为超级管理员分配所有权限（ID=1的角色获取所有权限）
 INSERT INTO `sys_role_perm` (`role_id`, `perm_id`)
@@ -231,35 +232,35 @@ SELECT 1, id FROM `sys_permission`;
 
 -- 为社区受理员分配部分权限
 INSERT INTO `sys_role_perm` (`role_id`, `perm_id`) VALUES
-(2, 1),   -- 仪表盘
-(2, 10),  -- 服务列表
-(2, 15),  -- 申请列表
-(2, 16),  -- 申请审核
-(2, 18);  -- 统计分析
+                                                       (2, 1),   -- 仪表盘
+                                                       (2, 10),  -- 服务列表
+                                                       (2, 15),  -- 申请列表
+                                                       (2, 16),  -- 申请审核
+                                                       (2, 18);  -- 统计分析
 
 -- 为街道审核员分配部分权限
 INSERT INTO `sys_role_perm` (`role_id`, `perm_id`) VALUES
-(3, 1),   -- 仪表盘
-(3, 10),  -- 服务列表
-(3, 15),  -- 申请列表
-(3, 16),  -- 申请审核
-(3, 18);  -- 统计分析
+                                                       (3, 1),   -- 仪表盘
+                                                       (3, 10),  -- 服务列表
+                                                       (3, 15),  -- 申请列表
+                                                       (3, 16),  -- 申请审核
+                                                       (3, 18);  -- 统计分析
 
 -- 插入默认超级管理员账号
 -- 密码: admin123 (使用Shiro MD5加密，盐值随机)
 INSERT INTO `sys_user` (`username`, `password`, `salt`, `real_name`, `phone`, `email`, `status`) VALUES
-('admin', '82d1d187ddcfbf1ba740510f28308c26', 'salt123', '超级管理员', '13800138000', 'admin@community.com', 1);
+    ('admin', '82d1d187ddcfbf1ba740510f28308c26', 'salt123', '超级管理员', '13800138000', 'admin@community.com', 1);
 
 -- 为管理员分配角色
 INSERT INTO `sys_user_role` (`user_id`, `role_id`) VALUES (1, 1);
 
 -- 插入示例服务项目数据
 INSERT INTO `service_item` (`item_name`, `item_code`, `category`, `description`, `fee`, `processing_days`, `required_docs`, `status`) VALUES
-('居住证明办理', 'RESIDENCE_CERT', '证件办理', '为本社区居民开具居住证明', 0.00, 3, '身份证原件、房屋租赁合同或房产证', 1),
-('低保申请', 'LOW_INCOME_APPLY', '救助帮扶', '最低生活保障金申请', 0.00, 7, '户口本、收入证明、残疾证（如有）', 1),
-('老年优待证办理', 'ELDERLY_CARD', '养老服务', '60岁以上老年人优待证办理', 0.00, 5, '身份证原件、近期免冠照片2张', 1),
-('独生子女证办理', 'ONE_CHILD_CERT', '计划生育', '独生子女父母光荣证办理', 0.00, 5, '结婚证、户口本、独生子女证明', 1),
-('就业登记', 'EMPLOYMENT_REG', '就业服务', '失业人员就业登记', 0.00, 3, '身份证、失业证、学历证明', 1);
+                                                                                                                                          ('居住证明办理', 'RESIDENCE_CERT', '证件办理', '为本社区居民开具居住证明', 0.00, 3, '身份证原件、房屋租赁合同或房产证', 1),
+                                                                                                                                          ('低保申请', 'LOW_INCOME_APPLY', '救助帮扶', '最低生活保障金申请', 0.00, 7, '户口本、收入证明、残疾证（如有）', 1),
+                                                                                                                                          ('老年优待证办理', 'ELDERLY_CARD', '养老服务', '60岁以上老年人优待证办理', 0.00, 5, '身份证原件、近期免冠照片2张', 1),
+                                                                                                                                          ('独生子女证办理', 'ONE_CHILD_CERT', '计划生育', '独生子女父母光荣证办理', 0.00, 5, '结婚证、户口本、独生子女证明', 1),
+                                                                                                                                          ('就业登记', 'EMPLOYMENT_REG', '就业服务', '失业人员就业登记', 0.00, 3, '身份证、失业证、学历证明', 1);
 
 -- -----------------------------------------------------
 -- 10. 系统配置表 (sys_config)
@@ -267,23 +268,23 @@ INSERT INTO `service_item` (`item_name`, `item_code`, `category`, `description`,
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `sys_config`;
 CREATE TABLE `sys_config` (
-    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-    `config_key` VARCHAR(100) NOT NULL COMMENT '配置键（唯一）',
-    `config_value` VARCHAR(500) DEFAULT NULL COMMENT '配置值',
-    `description` VARCHAR(200) DEFAULT NULL COMMENT '配置说明',
-    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_config_key` (`config_key`)
+                              `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+                              `config_key` VARCHAR(100) NOT NULL COMMENT '配置键（唯一）',
+                              `config_value` VARCHAR(500) DEFAULT NULL COMMENT '配置值',
+                              `description` VARCHAR(200) DEFAULT NULL COMMENT '配置说明',
+                              `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                              `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                              PRIMARY KEY (`id`),
+                              UNIQUE KEY `uk_config_key` (`config_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统配置表';
 
 -- 插入默认配置数据
 INSERT INTO `sys_config` (`config_key`, `config_value`, `description`) VALUES
-('system_name', '社区便民服务申请与进度管理系统', '系统名称'),
-('processing_deadline_days', '7', '默认办理时限（天）'),
-('notice_enabled', 'true', '是否启用办理时限提醒'),
-('contact_phone', '010-12345678', '系统联系电话'),
-('org_name', '街道便民服务中心', '所属组织名称');
+                                                                           ('system_name', '社区便民服务申请与进度管理系统', '系统名称'),
+                                                                           ('processing_deadline_days', '7', '默认办理时限（天）'),
+                                                                           ('notice_enabled', 'true', '是否启用办理时限提醒'),
+                                                                           ('contact_phone', '010-12345678', '系统联系电话'),
+                                                                           ('org_name', '街道便民服务中心', '所属组织名称');
 
 -- -----------------------------------------------------
 -- 11. 预约表 (appointment)
@@ -291,19 +292,19 @@ INSERT INTO `sys_config` (`config_key`, `config_value`, `description`) VALUES
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `appointment`;
 CREATE TABLE `appointment` (
-    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-    `resident_name` VARCHAR(50) DEFAULT NULL COMMENT '预约人姓名',
-    `resident_phone` VARCHAR(20) DEFAULT NULL COMMENT '预约人电话',
-    `service_item_id` BIGINT DEFAULT NULL COMMENT '预约服务事项ID',
-    `service_item_name` VARCHAR(100) DEFAULT NULL COMMENT '服务事项名称',
-    `appointment_date` DATE DEFAULT NULL COMMENT '预约日期',
-    `time_slot` VARCHAR(20) DEFAULT NULL COMMENT '时间段：AM上午/PM下午',
-    `status` VARCHAR(20) DEFAULT 'PENDING' COMMENT '状态：PENDING待确认/CONFIRMED已确认/CANCELED已取消/COMPLETED已完成',
-    `remark` VARCHAR(500) DEFAULT NULL COMMENT '备注',
-    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    PRIMARY KEY (`id`),
-    KEY `idx_appointment_date` (`appointment_date`),
-    KEY `idx_status` (`status`)
+                               `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+                               `resident_name` VARCHAR(50) DEFAULT NULL COMMENT '预约人姓名',
+                               `resident_phone` VARCHAR(20) DEFAULT NULL COMMENT '预约人电话',
+                               `service_item_id` BIGINT DEFAULT NULL COMMENT '预约服务事项ID',
+                               `service_item_name` VARCHAR(100) DEFAULT NULL COMMENT '服务事项名称',
+                               `appointment_date` DATE DEFAULT NULL COMMENT '预约日期',
+                               `time_slot` VARCHAR(20) DEFAULT NULL COMMENT '时间段：AM上午/PM下午',
+                               `status` VARCHAR(20) DEFAULT 'PENDING' COMMENT '状态：PENDING待确认/CONFIRMED已确认/CANCELED已取消/COMPLETED已完成',
+                               `remark` VARCHAR(500) DEFAULT NULL COMMENT '备注',
+                               `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                               PRIMARY KEY (`id`),
+                               KEY `idx_appointment_date` (`appointment_date`),
+                               KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='预约表';
 
 -- -----------------------------------------------------
@@ -312,19 +313,52 @@ CREATE TABLE `appointment` (
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `notification`;
 CREATE TABLE `notification` (
-    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-    `title` VARCHAR(200) NOT NULL COMMENT '通知标题',
-    `content` TEXT DEFAULT NULL COMMENT '通知内容',
-    `type` VARCHAR(20) DEFAULT 'SYSTEM' COMMENT '类型：AUDIT审核通知/SYSTEM系统通知',
-    `target_id` BIGINT DEFAULT NULL COMMENT '关联目标ID（如申请单ID）',
-    `target_name` VARCHAR(50) DEFAULT NULL COMMENT '接收人姓名',
-    `target_phone` VARCHAR(20) DEFAULT NULL COMMENT '接收人电话',
-    `is_read` TINYINT DEFAULT 0 COMMENT '是否已读：0未读/1已读',
-    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    PRIMARY KEY (`id`),
-    KEY `idx_is_read` (`is_read`),
-    KEY `idx_type` (`type`)
+                                `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+                                `title` VARCHAR(200) NOT NULL COMMENT '通知标题',
+                                `content` TEXT DEFAULT NULL COMMENT '通知内容',
+                                `type` VARCHAR(20) DEFAULT 'SYSTEM' COMMENT '类型：AUDIT审核通知/SYSTEM系统通知',
+                                `target_id` BIGINT DEFAULT NULL COMMENT '关联目标ID（如申请单ID）',
+                                `target_name` VARCHAR(50) DEFAULT NULL COMMENT '接收人姓名',
+                                `target_phone` VARCHAR(20) DEFAULT NULL COMMENT '接收人电话',
+                                `is_read` TINYINT DEFAULT 0 COMMENT '是否已读：0未读/1已读',
+                                `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                PRIMARY KEY (`id`),
+                                KEY `idx_is_read` (`is_read`),
+                                KEY `idx_type` (`type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='消息通知表';
+
+
+
+-- -----------------------------------------------------
+-- 13.  办事指南表(guide)
+-- 存储办事指南相关记录
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `guide` (
+                                       `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+                                       `title` varchar(200) NOT NULL COMMENT '文章标题',
+    `content` text COMMENT '文章内容（富文本HTML）',
+    `service_item_id` bigint DEFAULT NULL COMMENT '关联服务事项ID',
+    `category` varchar(50) DEFAULT NULL COMMENT '分类',
+    `status` tinyint DEFAULT '0' COMMENT '状态：1-发布 0-草稿',
+    `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `deleted` tinyint DEFAULT '0' COMMENT '逻辑删除：0-未删 1-已删',
+    PRIMARY KEY (`id`),
+    KEY `idx_service_item_id` (`service_item_id`),
+    KEY `idx_category` (`category`),
+    KEY `idx_status` (`status`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='办事指南表';
+
+--为 application_form 表添加 gender 字段
+ALTER TABLE `application_form`
+    ADD COLUMN `gender` CHAR(1) NULL DEFAULT NULL COMMENT '性别：M-男 F-女'
+AFTER `deleted`;
+
+-- evaluation.content 字段长度改为 1000
+ALTER TABLE `evaluation` MODIFY COLUMN `content` VARCHAR(1000) DEFAULT NULL COMMENT '评价内容';
+
+
+
 
 -- =====================================================
 -- 数据库初始化完成
@@ -336,21 +370,21 @@ CREATE TABLE `notification` (
 
 DROP TABLE IF EXISTS `evaluation`;
 CREATE TABLE `evaluation` (
-    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Primary key',
-    `application_id` BIGINT NOT NULL COMMENT 'Related application id',
-    `score` INT NOT NULL COMMENT 'Score 1-5',
-    `content` VARCHAR(500) DEFAULT NULL COMMENT 'Evaluation content',
-    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Create time',
-    PRIMARY KEY (`id`),
-    KEY `idx_application_id` (`application_id`),
-    KEY `idx_score` (`score`)
+                              `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Primary key',
+                              `application_id` BIGINT NOT NULL COMMENT 'Related application id',
+                              `score` INT NOT NULL COMMENT 'Score 1-5',
+                              `content` VARCHAR(500) DEFAULT NULL COMMENT 'Evaluation content',
+                              `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Create time',
+                              PRIMARY KEY (`id`),
+                              KEY `idx_application_id` (`application_id`),
+                              KEY `idx_score` (`score`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Service evaluation';
 
 INSERT INTO `sys_permission` (`perm_name`, `perm_code`, `perm_type`, `parent_id`, `url`, `sort_order`, `status`) VALUES
-('链嶅姟璇勪环', 'evaluation', 'menu', 0, '/evaluation', 6, 1),
-('璇勪环鍒楄〃', 'evaluation:list', 'button', (SELECT id FROM sys_permission WHERE perm_code='evaluation'), null, 1, 1),
-('璇勪环缁熻', 'evaluation:stats', 'button', (SELECT id FROM sys_permission WHERE perm_code='evaluation'), null, 2, 1),
-('鎶ヨ〃瀵煎嚭', 'report:export', 'menu', 0, '/report', 7, 1);
+                                                                                                                     ('链嶅姟璇勪环', 'evaluation', 'menu', 0, '/evaluation', 6, 1),
+                                                                                                                     ('璇勪环鍒楄〃', 'evaluation:list', 'button', (SELECT id FROM sys_permission WHERE perm_code='evaluation'), null, 1, 1),
+                                                                                                                     ('璇勪环缁熻', 'evaluation:stats', 'button', (SELECT id FROM sys_permission WHERE perm_code='evaluation'), null, 2, 1),
+                                                                                                                     ('鎶ヨ〃瀵煎嚭', 'report:export', 'menu', 0, '/report', 7, 1);
 
 INSERT INTO `sys_role_perm` (`role_id`, `perm_id`)
 SELECT 1, id FROM sys_permission WHERE perm_code IN ('evaluation', 'evaluation:list', 'evaluation:stats', 'report:export');
@@ -393,17 +427,20 @@ FROM `sys_permission` WHERE `perm_code` = 'notification';
 -- CLERK 获得预约+通知权限
 INSERT IGNORE INTO `sys_role_perm` (`role_id`, `perm_id`)
 SELECT 2, id FROM `sys_permission` WHERE `perm_code` IN (
-    'appointment', 'appointment:list', 'appointment:manage',
-    'notification', 'notification:list', 'notification:send'
-);
+                                                         'appointment', 'appointment:list', 'appointment:manage',
+                                                         'notification', 'notification:list', 'notification:send'
+    );
 
 -- REVIEWER 获得预约+通知权限
 INSERT IGNORE INTO `sys_role_perm` (`role_id`, `perm_id`)
 SELECT 3, id FROM `sys_permission` WHERE `perm_code` IN (
-    'appointment', 'appointment:list', 'appointment:manage',
-    'notification', 'notification:list', 'notification:send'
-);
+                                                         'appointment', 'appointment:list', 'appointment:manage',
+                                                         'notification', 'notification:list', 'notification:send'
+    );
 
 -- 修旧Bug：CLERK/REVIEWER 服务列表权限 ID10→9
 DELETE FROM `sys_role_perm` WHERE `role_id` IN (2, 3) AND `perm_id` = 10;
 INSERT IGNORE INTO `sys_role_perm` (`role_id`, `perm_id`) VALUES (2, 9), (3, 9);
+
+
+

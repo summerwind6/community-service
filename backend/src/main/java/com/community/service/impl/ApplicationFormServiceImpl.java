@@ -17,6 +17,7 @@ import com.community.service.AuditRecordService;
 import com.community.service.NotificationService;
 import com.community.service.ResidentInfoService;
 import com.community.service.ServiceItemService;
+import com.community.service.EvaluationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +45,9 @@ public class ApplicationFormServiceImpl extends ServiceImpl<ApplicationFormMappe
 
     @Autowired
     private NotificationService notificationService;
+
+    @Autowired
+    private EvaluationService evaluationService;
 
     @Override
     @Transactional
@@ -84,8 +88,8 @@ public class ApplicationFormServiceImpl extends ServiceImpl<ApplicationFormMappe
         LambdaQueryWrapper<ApplicationForm> wrapper = new LambdaQueryWrapper<>();
         if (pageDTO.getKeyword() != null && !pageDTO.getKeyword().isEmpty()) {
             wrapper.and(w -> w.like(ApplicationForm::getApplyNo, pageDTO.getKeyword())
-                    .or().like(ApplicationForm::getResidentName, pageDTO.getKeyword())
-                    .or().like(ApplicationForm::getServiceItemName, pageDTO.getKeyword()));
+                .or().like(ApplicationForm::getResidentName, pageDTO.getKeyword())
+                .or().like(ApplicationForm::getServiceItemName, pageDTO.getKeyword()));
         }
         if (status != null && !status.isEmpty()) {
             wrapper.eq(ApplicationForm::getStatus, status);
@@ -175,6 +179,30 @@ public class ApplicationFormServiceImpl extends ServiceImpl<ApplicationFormMappe
     }
 
     @Override
+    public List<ApplicationForm> getApplicationProgressByPhone(String phone) {
+        ResidentInfo resident = residentInfoService.getResidentByPhone(phone);
+        if (resident == null) {
+            return List.of();
+        }
+        LambdaQueryWrapper<ApplicationForm> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(ApplicationForm::getResidentId, resident.getId())
+            .orderByDesc(ApplicationForm::getCreateTime);
+        List<ApplicationForm> forms = list(wrapper);
+        forms.forEach(form -> form.setEvaluated(isApplicationEvaluated(form.getId())));
+        return forms;
+    }
+
+    @Override
+    public Boolean isApplicationEvaluated(Long applicationId) {
+        if (applicationId == null) {
+            return false;
+        }
+        LambdaQueryWrapper<com.community.entity.po.Evaluation> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(com.community.entity.po.Evaluation::getApplicationId, applicationId);
+        return evaluationService.count(wrapper) > 0;
+    }
+
+    @Override
     public void updateStatus(Long id, String status) {
         ApplicationForm form = getById(id);
         if (form != null) {
@@ -214,8 +242,8 @@ public class ApplicationFormServiceImpl extends ServiceImpl<ApplicationFormMappe
         String datePrefix = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         LambdaQueryWrapper<ApplicationForm> wrapper = new LambdaQueryWrapper<>();
         wrapper.likeRight(ApplicationForm::getApplyNo, "AP" + datePrefix)
-                .orderByDesc(ApplicationForm::getApplyNo)
-                .last("LIMIT 1");
+            .orderByDesc(ApplicationForm::getApplyNo)
+            .last("LIMIT 1");
         ApplicationForm last = getOne(wrapper, false);
         int seq = 1;
         if (last != null && last.getApplyNo().length() >= 14) {

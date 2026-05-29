@@ -38,12 +38,12 @@ public class StatController {
         long totalUsers = sysUserMapper.selectCount(null);
         long totalApplies = applicationFormMapper.selectCount(null);
         long pendingAudit = applicationFormMapper.selectCount(
-                new LambdaQueryWrapper<ApplicationForm>().eq(ApplicationForm::getStatus, "PENDING"));
+            new LambdaQueryWrapper<ApplicationForm>().eq(ApplicationForm::getStatus, "PENDING"));
         LocalDateTime todayStart = LocalDate.now().atStartOfDay();
         long completedToday = applicationFormMapper.selectCount(
-                new LambdaQueryWrapper<ApplicationForm>()
-                        .eq(ApplicationForm::getStatus, "COMPLETED")
-                        .ge(ApplicationForm::getUpdateTime, todayStart));
+            new LambdaQueryWrapper<ApplicationForm>()
+                .eq(ApplicationForm::getStatus, "COMPLETED")
+                .ge(ApplicationForm::getUpdateTime, todayStart));
 
         Map<String, Object> data = new HashMap<>();
         data.put("totalUsers", totalUsers);
@@ -67,18 +67,18 @@ public class StatController {
                 LocalDate weekStart = today.minusWeeks(i).with(java.time.DayOfWeek.MONDAY);
                 LocalDate weekEnd = weekStart.plusDays(7);
                 dates.add(weekStart.format(DateTimeFormatter.ofPattern("MM/dd")) + "-"
-                        + weekEnd.format(DateTimeFormatter.ofPattern("MM/dd")));
+                    + weekEnd.format(DateTimeFormatter.ofPattern("MM/dd")));
                 LocalDateTime ws = weekStart.atStartOfDay();
                 LocalDateTime we = weekEnd.atStartOfDay();
                 applyCounts.add(applicationFormMapper.selectCount(
-                        new LambdaQueryWrapper<ApplicationForm>()
-                                .ge(ApplicationForm::getCreateTime, ws)
-                                .lt(ApplicationForm::getCreateTime, we)));
+                    new LambdaQueryWrapper<ApplicationForm>()
+                        .ge(ApplicationForm::getCreateTime, ws)
+                        .lt(ApplicationForm::getCreateTime, we)));
                 completedCounts.add(applicationFormMapper.selectCount(
-                        new LambdaQueryWrapper<ApplicationForm>()
-                                .eq(ApplicationForm::getStatus, "COMPLETED")
-                                .ge(ApplicationForm::getUpdateTime, ws)
-                                .lt(ApplicationForm::getUpdateTime, we)));
+                    new LambdaQueryWrapper<ApplicationForm>()
+                        .eq(ApplicationForm::getStatus, "COMPLETED")
+                        .ge(ApplicationForm::getUpdateTime, ws)
+                        .lt(ApplicationForm::getUpdateTime, we)));
             }
         } else {
             for (int i = 6; i >= 0; i--) {
@@ -87,14 +87,14 @@ public class StatController {
                 LocalDateTime dayStart = date.atStartOfDay();
                 LocalDateTime dayEnd = date.plusDays(1).atStartOfDay();
                 applyCounts.add(applicationFormMapper.selectCount(
-                        new LambdaQueryWrapper<ApplicationForm>()
-                                .ge(ApplicationForm::getCreateTime, dayStart)
-                                .lt(ApplicationForm::getCreateTime, dayEnd)));
+                    new LambdaQueryWrapper<ApplicationForm>()
+                        .ge(ApplicationForm::getCreateTime, dayStart)
+                        .lt(ApplicationForm::getCreateTime, dayEnd)));
                 completedCounts.add(applicationFormMapper.selectCount(
-                        new LambdaQueryWrapper<ApplicationForm>()
-                                .eq(ApplicationForm::getStatus, "COMPLETED")
-                                .ge(ApplicationForm::getUpdateTime, dayStart)
-                                .lt(ApplicationForm::getUpdateTime, dayEnd)));
+                    new LambdaQueryWrapper<ApplicationForm>()
+                        .eq(ApplicationForm::getStatus, "COMPLETED")
+                        .ge(ApplicationForm::getUpdateTime, dayStart)
+                        .lt(ApplicationForm::getUpdateTime, dayEnd)));
             }
         }
 

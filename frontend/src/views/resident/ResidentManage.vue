@@ -28,7 +28,7 @@
         <el-table-column prop="name" label="姓名" width="120" />
         <el-table-column prop="gender" label="性别" width="80">
           <template #default="{ row }">
-            {{ row.gender === 'M' ? '男' : row.gender === 'F' ? '女' : '' }}
+            {{ formatGender(row.gender) }}
           </template>
         </el-table-column>
         <el-table-column prop="phone" label="手机号" width="130" />
@@ -151,6 +151,12 @@ const rules = {
   idCard: [
     { required: true, message: '请输入身份证号', trigger: 'blur' }
   ]
+}
+
+function formatGender(gender) {
+  if (gender === 'M') return '男'
+  if (gender === 'F') return '女'
+  return gender || '-'
 }
 
 function openDialog(row) {

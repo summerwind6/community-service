@@ -43,6 +43,9 @@ public class AuthController {
     @GetMapping("/info")
     public Result<UserVO> getUserInfo() {
         String username = ShiroUtils.getCurrentUsername();
+        if (username == null || username.isBlank()) {
+            return Result.error(401, "未登录或登录已过期");
+        }
         UserVO userInfo = sysUserService.getUserInfoByUsername(username);
         return Result.success(userInfo);
     }
@@ -52,6 +55,9 @@ public class AuthController {
     @PutMapping("/change-password")
     public Result<Void> changePassword(@RequestBody Map<String, String> params) {
         String username = ShiroUtils.getCurrentUsername();
+        if (username == null || username.isBlank()) {
+            return Result.error(401, "未登录或登录已过期");
+        }
         UserVO user = sysUserService.getUserInfoByUsername(username);
         sysUserService.changePassword(user.getId(), params.get("oldPassword"), params.get("newPassword"));
         return Result.success();
@@ -62,6 +68,9 @@ public class AuthController {
     @PutMapping("/profile")
     public Result<UserVO> updateProfile(@RequestBody UserDTO userDTO) {
         String username = ShiroUtils.getCurrentUsername();
+        if (username == null || username.isBlank()) {
+            return Result.error(401, "未登录或登录已过期");
+        }
         UserVO currentUser = sysUserService.getUserInfoByUsername(username);
         UserVO updated = sysUserService.updateProfile(currentUser.getId(), userDTO);
         return Result.success(updated);

@@ -22,7 +22,6 @@ import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -132,7 +131,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
         if (pageDTO.getKeyword() != null && !pageDTO.getKeyword().isEmpty()) {
             wrapper.and(w -> w.like(SysUser::getUsername, pageDTO.getKeyword())
-                    .or().like(SysUser::getRealName, pageDTO.getKeyword()));
+                .or().like(SysUser::getRealName, pageDTO.getKeyword()));
         }
         if (pageDTO.getStatus() != null) {
             wrapper.eq(SysUser::getStatus, pageDTO.getStatus());
@@ -176,14 +175,21 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Override
     public UserVO getUserInfoByUsername(String username) {
         SysUser user = getUserByUsername(username);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
         return convertToVO(user);
     }
 
     private UserVO convertToVO(SysUser user) {
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
         UserVO vo = new UserVO();
         BeanUtils.copyProperties(user, vo);
         vo.setPassword(null);
         vo.setSalt(null);
+        vo.setRoles(Set.of());
 
         LambdaQueryWrapper<SysUserRole> urWrapper = new LambdaQueryWrapper<>();
         urWrapper.eq(SysUserRole::getUserId, user.getId());
@@ -191,7 +197,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         if (!userRoles.isEmpty()) {
             List<Long> roleIds = userRoles.stream().map(SysUserRole::getRoleId).toList();
             List<SysRole> roles = sysRoleMapper.selectBatchIds(roleIds);
-            vo.setRoles(roles.stream().map(SysRole::getRoleCode).collect(Collectors.toSet()));
+            if (roles != null && !roles.isEmpty()) {
+                vo.setRoles(roles.stream().map(SysRole::getRoleCode).collect(Collectors.toSet()));
+            }
         }
         return vo;
     }
