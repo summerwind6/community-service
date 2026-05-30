@@ -1,8 +1,15 @@
 package com.community.shiro;
 
 import com.community.entity.po.SysUser;
+import com.community.entity.vo.UserVO;
 import com.community.service.SysUserService;
-import org.apache.shiro.authc.*;
+import org.apache.shiro.authc.AuthenticationException;
+import org.apache.shiro.authc.AuthenticationInfo;
+import org.apache.shiro.authc.AuthenticationToken;
+import org.apache.shiro.authc.LockedAccountException;
+import org.apache.shiro.authc.SimpleAuthenticationInfo;
+import org.apache.shiro.authc.UnknownAccountException;
+import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
@@ -19,12 +26,9 @@ public class CustomRealm extends AuthorizingRealm {
         String username = (String) principalCollection.getPrimaryPrincipal();
         SimpleAuthorizationInfo authorizationInfo = new SimpleAuthorizationInfo();
 
-        SysUser user = sysUserService.getUserByUsername(username);
+        UserVO user = sysUserService.getUserInfoByUsername(username);
         if (user != null && user.getRoles() != null) {
             authorizationInfo.setRoles(user.getRoles());
-            if (user.getPermissions() != null) {
-                authorizationInfo.setStringPermissions(user.getPermissions());
-            }
         }
 
         return authorizationInfo;

@@ -39,10 +39,13 @@ public class TimeoutWarnController {
     @PutMapping("/{id}/urge")
     public Result<Void> urge(@PathVariable Long id) {
         if (!ShiroUtils.hasRole("ADMIN")) {
-            return Result.error("只有超级管理员可以催办");
+            return Result.error(403, "只有管理员可以使用催办功能");
         }
         String operatorName = ShiroUtils.getCurrentUsername();
-        timeoutWarnService.urgeApplication(id, null, operatorName == null ? "系统管理员" : operatorName);
-        return Result.success();
+        if (operatorName == null || operatorName.isBlank()) {
+            return Result.error(401, "未登录或登录已过期");
+        }
+        timeoutWarnService.urgeApplication(id, null, operatorName);
+        return Result.success("催办成功", null);
     }
 }
