@@ -430,6 +430,27 @@ onMounted(async () => {
     justify-content: space-between;
     align-items: center;
     gap: 20px;
+
+    :deep(.el-steps--simple) {
+      background: #e8ecf1;
+      border-radius: 6px;
+      padding: 8px 16px;
+    }
+
+    :deep(.el-step__title.is-wait) {
+      color: #606266;
+      font-weight: 500;
+    }
+
+    :deep(.el-step__title.is-process) {
+      color: #303133;
+      font-weight: 600;
+    }
+
+    :deep(.el-step__title.is-success) {
+      color: #67C23A;
+      font-weight: 500;
+    }
   }
 
   .public-guide-section {
