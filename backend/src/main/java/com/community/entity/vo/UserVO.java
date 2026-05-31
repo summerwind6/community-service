@@ -19,6 +19,7 @@ public class UserVO {
     private Integer status;
     private LocalDateTime createTime;
     private Set<String> roles;
+    private Set<String> permissions;
 }
 
 

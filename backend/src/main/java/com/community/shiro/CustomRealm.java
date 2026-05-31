@@ -29,6 +29,9 @@ public class CustomRealm extends AuthorizingRealm {
         UserVO user = sysUserService.getUserInfoByUsername(username);
         if (user != null && user.getRoles() != null) {
             authorizationInfo.setRoles(user.getRoles());
+            if (user.getPermissions() != null) {
+                authorizationInfo.setStringPermissions(user.getPermissions());
+            }
         }
 
         return authorizationInfo;

@@ -13,8 +13,12 @@ import com.community.entity.vo.LoginVO;
 import com.community.entity.vo.PageVO;
 import com.community.entity.vo.UserVO;
 import com.community.mapper.SysRoleMapper;
+import com.community.mapper.SysRolePermMapper;
+import com.community.mapper.SysPermissionMapper;
 import com.community.mapper.SysUserMapper;
 import com.community.mapper.SysUserRoleMapper;
+import com.community.entity.po.SysRolePerm;
+import com.community.entity.po.SysPermission;
 import com.community.service.SysUserService;
 import com.community.shiro.PasswordUtil;
 import com.community.util.JwtTokenUtil;
@@ -41,6 +45,12 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Autowired
     private SysRoleMapper sysRoleMapper;
+
+    @Autowired
+    private SysRolePermMapper sysRolePermMapper;
+
+    @Autowired
+    private SysPermissionMapper sysPermissionMapper;
 
     @Override
     public LoginVO login(String username, String password) {
@@ -190,6 +200,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         vo.setPassword(null);
         vo.setSalt(null);
         vo.setRoles(Set.of());
+        vo.setPermissions(Set.of());
 
         LambdaQueryWrapper<SysUserRole> urWrapper = new LambdaQueryWrapper<>();
         urWrapper.eq(SysUserRole::getUserId, user.getId());
@@ -199,6 +210,20 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             List<SysRole> roles = sysRoleMapper.selectBatchIds(roleIds);
             if (roles != null && !roles.isEmpty()) {
                 vo.setRoles(roles.stream().map(SysRole::getRoleCode).collect(Collectors.toSet()));
+            }
+
+            LambdaQueryWrapper<SysRolePerm> rpWrapper = new LambdaQueryWrapper<>();
+            rpWrapper.in(SysRolePerm::getRoleId, roleIds);
+            List<SysRolePerm> rolePerms = sysRolePermMapper.selectList(rpWrapper);
+            if (!rolePerms.isEmpty()) {
+                List<Long> permIds = rolePerms.stream().map(SysRolePerm::getPermId).distinct().toList();
+                List<SysPermission> perms = sysPermissionMapper.selectBatchIds(permIds);
+                if (perms != null && !perms.isEmpty()) {
+                    vo.setPermissions(perms.stream()
+                            .filter(p -> p.getStatus() != null && p.getStatus() == 1)
+                            .map(SysPermission::getPermCode)
+                            .collect(Collectors.toSet()));
+                }
             }
         }
         return vo;

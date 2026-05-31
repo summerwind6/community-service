@@ -1,16 +1,17 @@
 <template>
     <div class="page-container guide-public-page">
-        <el-card shadow="hover">
-            <template #header>
-                <div class="card-header">
-                    <div>
-                        <div class="page-title">办事指南公开浏览</div>
-                        <div class="page-subtitle">居民无需登录即可查看各服务事项的办理说明与材料要求</div>
-                    </div>
-                    <el-tag type="success" effect="dark">共 {{ guideList.length }} 篇指南</el-tag>
+        <div class="page-banner">
+            <div>
+                <div class="page-title">
+                    <el-icon style="margin-right: 6px; vertical-align: -2px"><Reading /></el-icon>
+                    办事指南公开浏览
                 </div>
-            </template>
+                <div class="page-subtitle">居民无需登录即可查看各服务事项的办理说明与材料要求</div>
+            </div>
+            <el-tag type="success" effect="dark" size="large">共 {{ guideList.length }} 篇指南</el-tag>
+        </div>
 
+        <el-card shadow="hover">
             <el-skeleton :loading="loading" animated :rows="6">
                 <div v-if="groupedGuides.length === 0" class="empty-box">
                     <el-empty description="暂无公开办事指南" />
@@ -20,7 +21,6 @@
                     <el-collapse-item
                         v-for="group in groupedGuides"
                         :key="group.groupKey"
-                        :title="group.groupTitle"
                         :name="group.groupKey"
                     >
                         <template #title>
@@ -31,7 +31,7 @@
                         </template>
 
                         <div class="guide-list">
-                            <el-card v-for="guide in group.guides" :key="guide.id" class="guide-card" shadow="never">
+                            <div v-for="guide in group.guides" :key="guide.id" class="guide-card">
                                 <div class="guide-card-header">
                                     <div>
                                         <div class="guide-title">{{ guide.title }}</div>
@@ -40,11 +40,10 @@
                                             <span>服务事项：{{ getItemName(guide.serviceItemId) }}</span>
                                         </div>
                                     </div>
-                                    <el-tag :type="guide.status === 1 ? 'success' : 'info'">{{ guide.status === 1 ? '发布' : '草稿' }}</el-tag>
                                 </div>
-
+                                <div class="guide-content-separator"></div>
                                 <div class="guide-content" v-html="guide.content"></div>
-                            </el-card>
+                            </div>
                         </div>
                     </el-collapse-item>
                 </el-collapse>
@@ -55,6 +54,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { Reading } from '@element-plus/icons-vue'
 import { getPublicGuides } from '@/api/guide/guide'
 import { getEnabledItems } from '@/api/item/item'
 
@@ -117,22 +117,27 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .guide-public-page {
-    .card-header {
+
+    .page-banner {
         display: flex;
         justify-content: space-between;
-        align-items: flex-start;
-        gap: 16px;
+        align-items: center;
+        padding: 20px 28px;
+        margin-bottom: 16px;
+        background: linear-gradient(135deg, #304156 0%, #3b5998 100%);
+        border-radius: 8px;
+        color: #fff;
     }
 
     .page-title {
         font-size: 20px;
         font-weight: 700;
-        color: #303133;
+        color: #fff;
     }
 
     .page-subtitle {
         margin-top: 4px;
-        color: #909399;
+        color: rgba(255, 255, 255, 0.75);
         font-size: 13px;
     }
 
@@ -146,6 +151,7 @@ onMounted(() => {
 
     .collapse-title-text {
         font-weight: 600;
+        font-size: 15px;
     }
 
     .guide-list {
@@ -156,7 +162,11 @@ onMounted(() => {
     }
 
     .guide-card {
+        padding: 20px 24px;
         border: 1px solid #ebeef5;
+        border-radius: 6px;
+        background: #fafbfc;
+        border-left: 3px solid #409EFF;
     }
 
     .guide-card-header {
@@ -164,13 +174,14 @@ onMounted(() => {
         justify-content: space-between;
         align-items: flex-start;
         gap: 16px;
-        margin-bottom: 12px;
+        margin-bottom: 0;
     }
 
     .guide-title {
-        font-size: 16px;
+        font-size: 15px;
         font-weight: 600;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
+        color: #303133;
     }
 
     .guide-meta {
@@ -182,11 +193,19 @@ onMounted(() => {
         font-size: 13px;
     }
 
+    .guide-content-separator {
+        height: 1px;
+        background: #e8eaed;
+        margin: 14px 0;
+    }
+
     .guide-content {
         line-height: 1.8;
         color: #303133;
         white-space: normal;
         word-break: break-word;
+        max-width: 800px;
+        font-size: 14px;
     }
 
     .empty-box {

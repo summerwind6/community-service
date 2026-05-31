@@ -1,65 +1,73 @@
 <template>
   <div class="page-container resident-apply-page">
-    <el-card shadow="hover">
+    <!-- 页面标题栏 -->
+    <div class="page-banner">
+      <div class="banner-content">
+        <h2>居民办事大厅</h2>
+        <p>在线申请、进度查询、服务评价，一站式办理</p>
+      </div>
+      <el-steps :active="activeStep" simple class="banner-steps">
+        <el-step title="填表" />
+        <el-step title="查进度" />
+        <el-step title="评价" />
+      </el-steps>
+    </div>
+
+    <!-- 指南区：独立卡片 -->
+    <el-card shadow="hover" class="guide-section-card">
       <template #header>
-        <div class="card-header">
-          <span>居民办事入口</span>
-          <el-steps :active="activeStep" finish-status="success" simple style="width: 420px">
-            <el-step title="指南" />
-            <el-step title="填表" />
-            <el-step title="查进度" />
-            <el-step title="评价" />
-          </el-steps>
+        <div class="section-header">
+          <div>
+            <div class="section-title">
+              <el-icon style="margin-right: 6px; vertical-align: -2px"><Reading /></el-icon>
+              公开办事指南
+            </div>
+            <div class="section-subtitle">先了解办理材料、承诺时限和事项说明，再开始申请</div>
+          </div>
+          <el-button type="primary" plain @click="scrollToApply">去填表 ↓</el-button>
         </div>
       </template>
 
-      <section class="public-guide-section">
-        <div class="section-header">
-          <div>
-            <div class="section-title">公开办事指南</div>
-            <div class="section-subtitle">先了解办理材料、承诺时限和事项说明，再开始申请</div>
-          </div>
-          <el-button text type="primary" @click="scrollToApply">去填表</el-button>
+      <el-skeleton :loading="guideLoading" animated :rows="4">
+        <div v-if="groupedGuides.length === 0" class="empty-box">
+          <el-empty description="暂无公开办事指南" />
         </div>
 
-        <el-skeleton :loading="guideLoading" animated :rows="4">
-          <div v-if="groupedGuides.length === 0" class="empty-box">
-            <el-empty description="暂无公开办事指南" />
-          </div>
-
-          <el-collapse v-else v-model="guideActiveNames" accordion>
-            <el-collapse-item
-              v-for="group in groupedGuides"
-              :key="group.groupKey"
-              :name="group.groupKey"
-            >
-              <template #title>
-                <div class="guide-collapse-title">
-                  <span>{{ group.groupTitle }}</span>
-                  <el-tag size="small" type="info">{{ group.guides.length }} 篇</el-tag>
-                </div>
-              </template>
-
-              <div class="guide-list">
-                <el-card v-for="guide in group.guides" :key="guide.id" class="guide-card" shadow="never">
-                  <div class="guide-card-header">
-                    <div>
-                      <div class="guide-title">{{ guide.title }}</div>
-                      <div class="guide-meta">
-                        <el-tag size="small">{{ guide.category || '未分类' }}</el-tag>
-                        <span>承办事项：{{ getItemName(guide.serviceItemId) }}</span>
-                      </div>
-                    </div>
-                    <el-tag :type="guide.status === 1 ? 'success' : 'info'">{{ guide.status === 1 ? '发布' : '草稿' }}</el-tag>
-                  </div>
-                  <div class="guide-content" v-html="guide.content"></div>
-                </el-card>
+        <el-collapse v-else v-model="guideActiveNames" accordion>
+          <el-collapse-item
+            v-for="group in groupedGuides"
+            :key="group.groupKey"
+            :name="group.groupKey"
+          >
+            <template #title>
+              <div class="guide-collapse-title">
+                <span>{{ group.groupTitle }}</span>
+                <el-tag size="small" type="info">{{ group.guides.length }} 篇</el-tag>
               </div>
-            </el-collapse-item>
-          </el-collapse>
-        </el-skeleton>
-      </section>
+            </template>
 
+            <div class="guide-list">
+              <div v-for="guide in group.guides" :key="guide.id" class="guide-card">
+                <div class="guide-card-header">
+                  <div>
+                    <div class="guide-title">{{ guide.title }}</div>
+                    <div class="guide-meta">
+                      <el-tag size="small">{{ guide.category || '未分类' }}</el-tag>
+                      <span>承办事项：{{ getItemName(guide.serviceItemId) }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="guide-content-separator"></div>
+                <div class="guide-content" v-html="guide.content"></div>
+              </div>
+            </div>
+          </el-collapse-item>
+        </el-collapse>
+      </el-skeleton>
+    </el-card>
+
+    <!-- 办事区：独立卡片 -->
+    <el-card shadow="hover" class="apply-section-card">
       <el-tabs v-model="activeStepName" type="border-card" class="apply-tabs">
         <el-tab-pane label="Step1 填表" name="apply">
           <el-form ref="applyFormRef" :model="applyForm" :rules="applyRules" label-width="100px" class="apply-form">
@@ -98,6 +106,13 @@
               </el-select>
             </el-form-item>
 
+            <el-descriptions v-if="selectedItem" :column="2" border size="small" class="item-info">
+              <el-descriptions-item label="服务类别">{{ selectedItem.category }}</el-descriptions-item>
+              <el-descriptions-item label="承诺天数">{{ selectedItem.processingDays || 7 }} 天</el-descriptions-item>
+              <el-descriptions-item label="费用">{{ selectedItem.fee > 0 ? `¥${selectedItem.fee}` : '免费' }}</el-descriptions-item>
+              <el-descriptions-item label="所需材料" :span="2">{{ selectedItem.requiredDocs || '无特殊要求' }}</el-descriptions-item>
+            </el-descriptions>
+
             <el-form-item label="申请内容" prop="applyContent">
               <el-input v-model="applyForm.applyContent" type="textarea" :rows="5" placeholder="请描述您的申请内容" />
             </el-form-item>
@@ -118,21 +133,14 @@
               </el-upload>
             </el-form-item>
 
-            <el-descriptions v-if="selectedItem" :column="2" border size="small" style="margin-top: 12px">
-              <el-descriptions-item label="服务类别">{{ selectedItem.category }}</el-descriptions-item>
-              <el-descriptions-item label="承诺天数">{{ selectedItem.processingDays || 7 }} 天</el-descriptions-item>
-              <el-descriptions-item label="费用">{{ selectedItem.fee > 0 ? `¥${selectedItem.fee}` : '免费' }}</el-descriptions-item>
-              <el-descriptions-item label="所需材料" :span="2">{{ selectedItem.requiredDocs || '无特殊要求' }}</el-descriptions-item>
-            </el-descriptions>
-
             <div class="form-actions">
-              <el-button type="primary" :loading="submitLoading" @click="submitApplyForm">提交申请</el-button>
+              <el-button type="primary" size="large" :loading="submitLoading" @click="submitApplyForm">提交申请</el-button>
             </div>
           </el-form>
         </el-tab-pane>
 
         <el-tab-pane label="Step2 查进度" name="progress">
-          <el-form :inline="true" :model="progressForm">
+          <el-form :inline="true" :model="progressForm" class="progress-search">
             <el-form-item label="手机号">
               <el-input v-model="progressForm.phone" placeholder="请输入手机号" clearable />
             </el-form-item>
@@ -144,13 +152,20 @@
           <el-empty v-if="progressList.length === 0" description="暂无申请记录" />
 
           <div v-else class="progress-list">
-            <el-card v-for="item in progressList" :key="item.id" class="progress-card" shadow="never">
+            <div
+              v-for="item in progressList"
+              :key="item.id"
+              class="progress-card"
+              :class="'status-' + item.status"
+            >
               <div class="progress-header">
                 <div>
-                  <strong>{{ item.applyNo }}</strong>
+                  <strong class="apply-no">{{ item.applyNo }}</strong>
                   <span class="muted">{{ item.serviceItemName }}</span>
                 </div>
-                <el-tag :type="formatStatus(item.status).type">{{ formatStatus(item.status).text }}</el-tag>
+                <el-tag :type="formatStatus(item.status).type" effect="dark" size="small">
+                  {{ formatStatus(item.status).text }}
+                </el-tag>
               </div>
               <el-timeline>
                 <el-timeline-item timestamp="提交申请" color="#409EFF">
@@ -162,7 +177,7 @@
                 <el-timeline-item v-if="item.remark" timestamp="备注" color="#E6A23C">
                   {{ item.remark }}
                 </el-timeline-item>
-                <el-timeline-item v-if="item.status === 'COMPLETED'" timestamp="办结" color="#F56C6C">
+                <el-timeline-item v-if="item.status === 'COMPLETED'" timestamp="办结" color="#67C23A">
                   已办结，可前往评价
                 </el-timeline-item>
               </el-timeline>
@@ -175,19 +190,19 @@
                   @click="openEvaluation(item)"
                   :disabled="item.status !== 'COMPLETED' || item.evaluated"
                 >
-                  {{ item.evaluated ? '已评价' : '评价' }}
+                  {{ item.evaluated ? '已评价' : '去评价' }}
                 </el-button>
               </div>
-            </el-card>
+            </div>
           </div>
         </el-tab-pane>
 
         <el-tab-pane label="Step3 评价" name="evaluation">
-          <el-alert title="请先在“查进度”中选择已办结申请进行评价" type="info" show-icon :closable="false" />
+          <el-alert title="请先在「查进度」中选择已办结申请进行评价" type="info" show-icon :closable="false" />
 
-          <el-card v-if="selectedApply" class="eval-card" shadow="never">
+          <div v-if="selectedApply" class="eval-card">
             <div class="eval-header">
-              <span>评价申请：{{ selectedApply.applyNo }}</span>
+              <span>评价申请：<strong>{{ selectedApply.applyNo }}</strong></span>
               <el-tag type="success">{{ selectedApply.serviceItemName }}</el-tag>
             </div>
             <el-form :model="evaluationForm" label-width="90px">
@@ -199,9 +214,9 @@
               </el-form-item>
             </el-form>
             <div class="form-actions">
-              <el-button type="primary" :loading="evaluateLoading" @click="submitEvaluationForm">提交评价</el-button>
+              <el-button type="primary" size="large" :loading="evaluateLoading" @click="submitEvaluationForm">提交评价</el-button>
             </div>
-          </el-card>
+          </div>
         </el-tab-pane>
       </el-tabs>
     </el-card>
@@ -211,6 +226,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
+import { Reading } from '@element-plus/icons-vue'
 import { getEnabledItems } from '@/api/item/item'
 import { submitPublicApply, getApplyProgress } from '@/api/apply/public'
 import { uploadFile } from '@/api/upload/upload'
@@ -219,7 +235,7 @@ import { getPublicGuides } from '@/api/guide/guide'
 import { formatStatus } from '@/utils/common'
 
 const activeStepName = ref('apply')
-const activeStep = computed(() => ({ apply: 1, progress: 2, evaluation: 3 }[activeStepName.value]))
+const activeStep = computed(() => ({ apply: 0, progress: 1, evaluation: 2 }[activeStepName.value]))
 const itemList = ref([])
 const selectedItem = ref(null)
 const submitLoading = ref(false)
@@ -244,7 +260,10 @@ const applyForm = reactive({
 
 const applyRules = {
   residentName: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
-  phone: [{ required: true, message: '请输入手机号', trigger: 'blur' }],
+  phone: [
+    { required: true, message: '请输入手机号', trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' }
+  ],
   gender: [{ required: true, message: '请选择性别', trigger: 'change' }],
   serviceItemId: [{ required: true, message: '请选择服务事项', trigger: 'change' }],
   applyContent: [{ required: true, message: '请填写申请内容', trigger: 'blur' }]
@@ -425,164 +444,254 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .resident-apply-page {
-  .card-header {
+
+  /* ── 顶部横幅 ── */
+  .page-banner {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 20px;
+    padding: 20px 28px;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, #304156 0%, #3b5998 100%);
+    border-radius: 8px;
+    color: #fff;
 
-    :deep(.el-steps--simple) {
-      background: #e8ecf1;
-      border-radius: 6px;
-      padding: 8px 16px;
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin: 0 0 4px;
     }
 
-    :deep(.el-step__title.is-wait) {
-      color: #606266;
-      font-weight: 500;
+    p {
+      margin: 0;
+      font-size: 13px;
+      opacity: 0.8;
     }
 
-    :deep(.el-step__title.is-process) {
+    .banner-steps {
+      max-width: 360px;
+      :deep(.el-step__title) {
+        color: rgba(255, 255, 255, 0.85);
+        font-weight: 500;
+      }
+      :deep(.el-step__head.is-finish .el-step__title),
+      :deep(.el-step__head.is-process .el-step__title) {
+        color: #fff;
+        font-weight: 700;
+      }
+      :deep(.el-step__head.is-finish .el-step__line),
+      :deep(.el-step__head.is-wait .el-step__line) {
+        background: rgba(255, 255, 255, 0.3);
+      }
+      :deep(.el-step__head.is-finish .el-step__icon),
+      :deep(.el-step__head.is-process .el-step__icon) {
+        background: #409EFF;
+        border-color: #409EFF;
+        color: #fff;
+      }
+      :deep(.el-step__head.is-wait .el-step__icon) {
+        background: rgba(255, 255, 255, 0.25);
+        border-color: rgba(255, 255, 255, 0.5);
+        color: rgba(255, 255, 255, 0.9);
+      }
+    }
+  }
+
+  /* ── 指南区卡片 ── */
+  .guide-section-card {
+    margin-bottom: 16px;
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
       color: #303133;
+    }
+
+    .section-subtitle {
+      margin-top: 2px;
+      font-size: 13px;
+      color: #909399;
+    }
+
+    .guide-collapse-title {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-right: 16px;
       font-weight: 600;
     }
 
-    :deep(.el-step__title.is-success) {
-      color: #67C23A;
-      font-weight: 500;
+    .guide-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding-top: 8px;
     }
-  }
 
-  .public-guide-section {
-    margin-bottom: 20px;
-    padding: 16px;
-    border: 1px solid #ebeef5;
-    border-radius: 8px;
-    background: #fafcff;
-  }
+    .guide-card {
+      padding: 20px 24px;
+      border: 1px solid #ebeef5;
+      border-radius: 6px;
+      background: #fafbfc;
+      border-left: 3px solid #409EFF;
 
-  .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-    gap: 16px;
-  }
+      .guide-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 0;
+      }
 
-  .section-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: #303133;
-  }
+      .guide-title {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 6px;
+        color: #303133;
+      }
 
-  .section-subtitle {
-    margin-top: 4px;
-    font-size: 13px;
-    color: #909399;
-  }
+      .guide-meta {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+        color: #909399;
+        font-size: 13px;
+      }
 
-  .guide-collapse-title {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-right: 16px;
-    font-weight: 600;
-  }
+      .guide-content-separator {
+        height: 1px;
+        background: #e8eaed;
+        margin: 14px 0;
+      }
 
-  .guide-list {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding-top: 8px;
-  }
-
-  .guide-card {
-    border: 1px solid #ebeef5;
-  }
-
-  .guide-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 16px;
-    margin-bottom: 12px;
-  }
-
-  .guide-title {
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 8px;
-  }
-
-  .guide-meta {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    align-items: center;
-    color: #909399;
-    font-size: 13px;
-  }
-
-  .guide-content {
-    line-height: 1.8;
-    color: #303133;
-    white-space: normal;
-    word-break: break-word;
+      .guide-content {
+        line-height: 1.8;
+        color: #303133;
+        white-space: normal;
+        word-break: break-word;
+        max-width: 800px;
+        font-size: 14px;
+      }
+    }
   }
 
   .empty-box {
     padding: 20px 0;
   }
 
+  /* ── 办事区卡片 ── */
+  .apply-section-card {
+    :deep(.el-card__body) {
+      padding: 0;
+    }
+  }
+
   .apply-tabs {
-    margin-top: 8px;
+    border: none;
+    box-shadow: none;
   }
 
   .apply-form {
     max-width: 920px;
+    padding: 8px 0;
+  }
+
+  .item-info {
+    margin-top: 4px;
+    margin-bottom: 18px;
   }
 
   .form-actions {
-    margin-top: 20px;
+    margin-top: 24px;
+    padding: 16px;
+    background: #fafafa;
+    border-radius: 6px;
     display: flex;
     justify-content: center;
   }
 
+  /* ── 进度搜索 ── */
+  .progress-search {
+    margin-bottom: 16px;
+  }
+
+  /* ── 进度卡片列表 ── */
   .progress-list {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 14px;
   }
 
   .progress-card {
+    padding: 16px 20px;
+    border: 1px solid #ebeef5;
+    border-radius: 6px;
+    background: #fff;
+    transition: box-shadow 0.2s;
+
+    &:hover {
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    /* 左侧状态色条 */
+    border-left: 4px solid #909399;
+
+    &.status-PENDING    { border-left-color: #E6A23C; }
+    &.status-PROCESSING { border-left-color: #409EFF; }
+    &.status-APPROVED   { border-left-color: #67C23A; }
+    &.status-REJECTED   { border-left-color: #F56C6C; }
+    &.status-COMPLETED  { border-left-color: #67C23A; }
+
     .progress-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
+
+      .apply-no {
+        font-size: 15px;
+        color: #303133;
+      }
 
       .muted {
         margin-left: 12px;
         color: #909399;
+        font-size: 13px;
       }
     }
 
     .card-actions {
       margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid #f0f0f0;
       display: flex;
       justify-content: flex-end;
     }
   }
 
+  /* ── 评价区 ── */
   .eval-card {
     margin-top: 16px;
+    padding: 20px;
+    border: 1px solid #ebeef5;
+    border-radius: 6px;
+    background: #fafbfc;
 
     .eval-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 16px;
+      font-size: 15px;
     }
   }
 }

@@ -246,5 +246,11 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+
+  span {
+    font-size: 16px;
+    font-weight: 600;
+    color: #303133;
+  }
 }
 </style>
