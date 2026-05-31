@@ -6,11 +6,13 @@
         <h2>居民办事大厅</h2>
         <p>在线申请、进度查询、服务评价，一站式办理</p>
       </div>
-      <el-steps :active="activeStep" class="banner-steps">
-        <el-step title="填表" />
-        <el-step title="查进度" />
-        <el-step title="评价" />
-      </el-steps>
+      <div class="banner-steps-custom">
+        <span :class="{ active: activeStep >= 1 }">① 填表</span>
+        <span class="arrow">›</span>
+        <span :class="{ active: activeStep >= 2 }">② 查进度</span>
+        <span class="arrow">›</span>
+        <span :class="{ active: activeStep >= 3 }">③ 评价</span>
+      </div>
     </div>
 
     <!-- 指南区：独立卡片 -->
@@ -468,37 +470,23 @@ onMounted(async () => {
       opacity: 0.8;
     }
 
-    :deep(.el-steps--simple) {
-      background: transparent;
-    }
-
-    :deep(.el-step__title) {
-      color: rgba(255, 255, 255, 0.7);
-      font-weight: 500;
+    .banner-steps-custom {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
       white-space: nowrap;
-    }
-    :deep(.el-step__head.is-finish .el-step__title),
-    :deep(.el-step__head.is-process .el-step__title) {
-      color: #fff;
-      font-weight: 700;
-    }
-    :deep(.el-step__arrow) {
       color: rgba(255, 255, 255, 0.5);
-    }
-    :deep(.el-step__head.is-finish .el-step__line),
-    :deep(.el-step__head.is-wait .el-step__line) {
-      background: rgba(255, 255, 255, 0.3);
-    }
-    :deep(.el-step__head.is-finish .el-step__icon),
-    :deep(.el-step__head.is-process .el-step__icon) {
-      background: #409EFF;
-      border-color: #409EFF;
-      color: #fff;
-    }
-    :deep(.el-step__head.is-wait .el-step__icon) {
-      background: rgba(255, 255, 255, 0.25);
-      border-color: rgba(255, 255, 255, 0.5);
-      color: rgba(255, 255, 255, 0.9);
+
+      span.active {
+        color: #fff;
+        font-weight: 600;
+      }
+
+      .arrow {
+        font-size: 18px;
+        margin: 0 2px;
+      }
     }
   }
 
@@ -702,25 +690,3 @@ onMounted(async () => {
 }
 </style>
 
-<style lang="scss">
-.page-banner .el-steps--simple.banner-steps {
-  background: transparent !important;
-}
-.page-banner .el-step__title {
-  color: rgba(255, 255, 255, 0.7) !important;
-  font-weight: 500;
-}
-.page-banner .el-step__head.is-finish .el-step__title,
-.page-banner .el-step__head.is-process .el-step__title {
-  color: #fff !important;
-  font-weight: 700;
-}
-.page-banner .el-step__arrow {
-  color: rgba(255, 255, 255, 0.5) !important;
-}
-.page-banner .el-step__head.is-wait .el-step__icon {
-  background: rgba(255, 255, 255, 0.25) !important;
-  border-color: rgba(255, 255, 255, 0.5) !important;
-  color: rgba(255, 255, 255, 0.9) !important;
-}
-</style>
