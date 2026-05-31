@@ -475,6 +475,7 @@ onMounted(async () => {
     :deep(.el-step__title) {
       color: rgba(255, 255, 255, 0.7);
       font-weight: 500;
+      white-space: nowrap;
     }
     :deep(.el-step__head.is-finish .el-step__title),
     :deep(.el-step__head.is-process .el-step__title) {
