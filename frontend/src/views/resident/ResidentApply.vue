@@ -6,7 +6,7 @@
         <h2>居民办事大厅</h2>
         <p>在线申请、进度查询、服务评价，一站式办理</p>
       </div>
-      <el-steps :active="activeStep" simple class="banner-steps">
+      <el-steps :active="activeStep" class="banner-steps">
         <el-step title="填表" />
         <el-step title="查进度" />
         <el-step title="评价" />
@@ -468,32 +468,36 @@ onMounted(async () => {
       opacity: 0.8;
     }
 
-    .banner-steps {
-      max-width: 360px;
-      :deep(.el-step__title) {
-        color: rgba(255, 255, 255, 0.85);
-        font-weight: 500;
-      }
-      :deep(.el-step__head.is-finish .el-step__title),
-      :deep(.el-step__head.is-process .el-step__title) {
-        color: #fff;
-        font-weight: 700;
-      }
-      :deep(.el-step__head.is-finish .el-step__line),
-      :deep(.el-step__head.is-wait .el-step__line) {
-        background: rgba(255, 255, 255, 0.3);
-      }
-      :deep(.el-step__head.is-finish .el-step__icon),
-      :deep(.el-step__head.is-process .el-step__icon) {
-        background: #409EFF;
-        border-color: #409EFF;
-        color: #fff;
-      }
-      :deep(.el-step__head.is-wait .el-step__icon) {
-        background: rgba(255, 255, 255, 0.25);
-        border-color: rgba(255, 255, 255, 0.5);
-        color: rgba(255, 255, 255, 0.9);
-      }
+    :deep(.el-steps--simple) {
+      background: transparent;
+    }
+
+    :deep(.el-step__title) {
+      color: rgba(255, 255, 255, 0.7);
+      font-weight: 500;
+    }
+    :deep(.el-step__head.is-finish .el-step__title),
+    :deep(.el-step__head.is-process .el-step__title) {
+      color: #fff;
+      font-weight: 700;
+    }
+    :deep(.el-step__arrow) {
+      color: rgba(255, 255, 255, 0.5);
+    }
+    :deep(.el-step__head.is-finish .el-step__line),
+    :deep(.el-step__head.is-wait .el-step__line) {
+      background: rgba(255, 255, 255, 0.3);
+    }
+    :deep(.el-step__head.is-finish .el-step__icon),
+    :deep(.el-step__head.is-process .el-step__icon) {
+      background: #409EFF;
+      border-color: #409EFF;
+      color: #fff;
+    }
+    :deep(.el-step__head.is-wait .el-step__icon) {
+      background: rgba(255, 255, 255, 0.25);
+      border-color: rgba(255, 255, 255, 0.5);
+      color: rgba(255, 255, 255, 0.9);
     }
   }
 
@@ -694,5 +698,28 @@ onMounted(async () => {
       font-size: 15px;
     }
   }
+}
+</style>
+
+<style lang="scss">
+.page-banner .el-steps--simple.banner-steps {
+  background: transparent !important;
+}
+.page-banner .el-step__title {
+  color: rgba(255, 255, 255, 0.7) !important;
+  font-weight: 500;
+}
+.page-banner .el-step__head.is-finish .el-step__title,
+.page-banner .el-step__head.is-process .el-step__title {
+  color: #fff !important;
+  font-weight: 700;
+}
+.page-banner .el-step__arrow {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+.page-banner .el-step__head.is-wait .el-step__icon {
+  background: rgba(255, 255, 255, 0.25) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
 }
 </style>
