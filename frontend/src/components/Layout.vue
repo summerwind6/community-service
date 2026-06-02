@@ -14,48 +14,43 @@
                 active-text-color="#409EFF"
                 router
             >
-                <el-menu-item index="/dashboard">
+                <el-menu-item v-if="userStore.hasPermission('stat:dashboard')" index="/dashboard">
                     <el-icon><Odometer /></el-icon>
                     <template #title>仪表盘</template>
                 </el-menu-item>
 
-                <el-sub-menu v-if="userStore.hasRole('ADMIN')" index="/system">
+                <el-sub-menu v-if="userStore.hasAnyPermission('user:list','role:list','system:config','system:online')" index="/system">
                     <template #title>
                         <el-icon><Setting /></el-icon>
                         <span>系统管理</span>
                     </template>
-                    <el-menu-item index="/system/user">用户管理</el-menu-item>
-                    <el-menu-item index="/system/role">角色管理</el-menu-item>
-                    <el-menu-item index="/system/config">系统配置</el-menu-item>
-                    <el-menu-item index="/system/session">在线用户</el-menu-item>
+                    <el-menu-item v-if="userStore.hasPermission('user:list')" index="/system/user">用户管理</el-menu-item>
+                    <el-menu-item v-if="userStore.hasPermission('role:list')" index="/system/role">角色管理</el-menu-item>
+                    <el-menu-item v-if="userStore.hasPermission('system:config')" index="/system/config">系统配置</el-menu-item>
+                    <el-menu-item v-if="userStore.hasPermission('system:online')" index="/system/session">在线用户</el-menu-item>
                 </el-sub-menu>
 
-                <el-sub-menu index="/service">
+                <el-sub-menu v-if="userStore.hasAnyPermission('resident:list','item:list','guide:list','guide:public','attachment:list')" index="/service">
                     <template #title>
                         <el-icon><Document /></el-icon>
                         <span>服务管理</span>
                     </template>
-                    <el-menu-item index="/resident/list">居民管理</el-menu-item>
-                    <el-menu-item index="/service/item">服务项目</el-menu-item>
-                    <el-menu-item v-if="userStore.hasRole('ADMIN')" index="/guide/manage">办事指南管理</el-menu-item>
-                    <el-menu-item index="/guide/public">办事指南公开页</el-menu-item>
-                    <el-menu-item index="/attachment/manage">附件管理</el-menu-item>
+                    <el-menu-item v-if="userStore.hasPermission('resident:list')" index="/resident/list">居民管理</el-menu-item>
+                    <el-menu-item v-if="userStore.hasPermission('item:list')" index="/service/item">服务项目</el-menu-item>
+                    <el-menu-item v-if="userStore.hasPermission('guide:list')" index="/guide/manage">办事指南管理</el-menu-item>
+                    <el-menu-item v-if="userStore.hasPermission('guide:public')" index="/guide/public">办事指南公开页</el-menu-item>
+                    <el-menu-item v-if="userStore.hasPermission('attachment:list')" index="/attachment/manage">附件管理</el-menu-item>
                 </el-sub-menu>
 
-                <el-sub-menu index="/apply">
+                <el-sub-menu v-if="userStore.hasAnyPermission('apply:list','apply:overtime','appointment:list','notification:list')" index="/apply">
                     <template #title>
                         <el-icon><Tickets /></el-icon>
                         <span>申请管理</span>
                     </template>
-                    <el-menu-item index="/apply/list">申请列表</el-menu-item>
-                    <el-menu-item index="/warn/timeout">超时预警</el-menu-item>
-                    <el-menu-item
-                        v-if="userStore.hasRole('ADMIN') || userStore.hasRole('CLERK')"
-                        index="/appointment/list"
-                    >
-                        预约管理
-                    </el-menu-item>
-                    <el-menu-item index="/notification/list">
+                    <el-menu-item v-if="userStore.hasPermission('apply:list')" index="/apply/list">申请列表</el-menu-item>
+                    <el-menu-item v-if="userStore.hasPermission('apply:overtime')" index="/warn/timeout">超时预警</el-menu-item>
+                    <el-menu-item v-if="userStore.hasPermission('appointment:list')" index="/appointment/list">预约管理</el-menu-item>
+                    <el-menu-item v-if="userStore.hasPermission('notification:list')" index="/notification/list">
                         <div class="notify-item">
                             <span>消息通知</span>
                             <el-badge :value="unreadCount" :hidden="unreadCount === 0" />
@@ -63,21 +58,21 @@
                     </el-menu-item>
                 </el-sub-menu>
 
-                <el-sub-menu index="/stat">
+                <el-sub-menu v-if="userStore.hasPermission('stat:analysis')" index="/stat">
                     <template #title>
                         <el-icon><DataAnalysis /></el-icon>
                         <span>统计分析</span>
                     </template>
-                    <el-menu-item index="/stat/analysis">数据分析</el-menu-item>
+                    <el-menu-item v-if="userStore.hasPermission('stat:analysis')" index="/stat/analysis">数据分析</el-menu-item>
                 </el-sub-menu>
 
-                <el-sub-menu index="/evaluation">
+                <el-sub-menu v-if="userStore.hasAnyPermission('evaluation:list','report')" index="/evaluation">
                     <template #title>
                         <el-icon><Star /></el-icon>
                         <span>服务评价</span>
                     </template>
-                    <el-menu-item index="/evaluation">评价列表</el-menu-item>
-                    <el-menu-item index="/report">数据报表</el-menu-item>
+                    <el-menu-item v-if="userStore.hasPermission('evaluation:list')" index="/evaluation/list">评价列表</el-menu-item>
+                    <el-menu-item v-if="userStore.hasPermission('report')" index="/report">数据报表</el-menu-item>
                 </el-sub-menu>
             </el-menu>
         </el-aside>
