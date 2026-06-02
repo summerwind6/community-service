@@ -71,7 +71,7 @@
                         <el-icon><Star /></el-icon>
                         <span>服务评价</span>
                     </template>
-                    <el-menu-item v-if="userStore.hasPermission('evaluation:list')" index="/evaluation/list">评价列表</el-menu-item>
+                    <el-menu-item v-if="userStore.hasPermission('evaluation:list')" index="/evaluation">评价列表</el-menu-item>
                     <el-menu-item v-if="userStore.hasPermission('report')" index="/report">数据报表</el-menu-item>
                 </el-sub-menu>
             </el-menu>
