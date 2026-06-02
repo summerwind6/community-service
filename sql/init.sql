@@ -249,7 +249,7 @@ CREATE TABLE `evaluation` (
     `content` VARCHAR(1000) DEFAULT NULL COMMENT '评价内容',
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     PRIMARY KEY (`id`),
-    KEY `idx_application_id` (`application_id`),
+    UNIQUE KEY `uk_application_id` (`application_id`),
     KEY `idx_score` (`score`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='服务评价表';
 

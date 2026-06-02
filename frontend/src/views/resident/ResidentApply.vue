@@ -124,13 +124,15 @@
                 :http-request="handleUpload"
                 :file-list="fileList"
                 :limit="5"
+                :before-upload="beforeUpload"
+                accept=".jpg,.jpeg,.png,.gif,.webp,.bmp,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"
                 multiple
                 list-type="text"
                 :on-remove="handleRemoveFile"
               >
                 <el-button type="primary">选择附件</el-button>
                 <template #tip>
-                  <div class="el-upload__tip">支持图片、PDF、文档等文件，最多 5 个</div>
+                  <div class="el-upload__tip">支持图片、PDF、Office文档、TXT文件，单个文件不超过10MB，最多5个</div>
                 </template>
               </el-upload>
             </el-form-item>
@@ -203,21 +205,30 @@
           <el-alert title="请先在「查进度」中选择已办结申请进行评价" type="info" show-icon :closable="false" />
 
           <div v-if="selectedApply" class="eval-card">
-            <div class="eval-header">
-              <span>评价申请：<strong>{{ selectedApply.applyNo }}</strong></span>
-              <el-tag type="success">{{ selectedApply.serviceItemName }}</el-tag>
-            </div>
-            <el-form :model="evaluationForm" label-width="90px">
-              <el-form-item label="星级评分">
-                <el-rate v-model="evaluationForm.score" show-text :texts="['差', '较差', '一般', '满意', '非常满意']" />
-              </el-form-item>
-              <el-form-item label="评价内容">
-                <el-input v-model="evaluationForm.content" type="textarea" :rows="4" placeholder="请输入评价内容" />
-              </el-form-item>
-            </el-form>
-            <div class="form-actions">
-              <el-button type="primary" size="large" :loading="evaluateLoading" @click="submitEvaluationForm">提交评价</el-button>
-            </div>
+            <template v-if="selectedApply.evaluated">
+              <el-result icon="success" title="评价已提交" sub-title="感谢您的评价！">
+                <template #extra>
+                  <el-button type="primary" @click="activeStepName = 'progress'">返回查看进度</el-button>
+                </template>
+              </el-result>
+            </template>
+            <template v-else>
+              <div class="eval-header">
+                <span>评价申请：<strong>{{ selectedApply.applyNo }}</strong></span>
+                <el-tag type="success">{{ selectedApply.serviceItemName }}</el-tag>
+              </div>
+              <el-form :model="evaluationForm" label-width="90px">
+                <el-form-item label="星级评分">
+                  <el-rate v-model="evaluationForm.score" show-text :texts="['差', '较差', '一般', '满意', '非常满意']" />
+                </el-form-item>
+                <el-form-item label="评价内容">
+                  <el-input v-model="evaluationForm.content" type="textarea" :rows="4" placeholder="请输入评价内容" />
+                </el-form-item>
+              </el-form>
+              <div class="form-actions">
+                <el-button type="primary" size="large" :loading="evaluateLoading" @click="submitEvaluationForm">提交评价</el-button>
+              </div>
+            </template>
           </div>
         </el-tab-pane>
       </el-tabs>
@@ -335,6 +346,24 @@ function normalizeGender(gender) {
   if (gender === '男') return 'M'
   if (gender === '女') return 'F'
   return gender || ''
+}
+
+const ALLOWED_EXTENSIONS = ['jpg','jpeg','png','gif','webp','bmp','pdf','doc','docx','xls','xlsx','ppt','pptx','txt']
+const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+
+function beforeUpload(file) {
+  const name = file.name || ''
+  const dotIndex = name.lastIndexOf('.')
+  const ext = dotIndex >= 0 ? name.substring(dotIndex + 1).toLowerCase() : ''
+  if (!ALLOWED_EXTENSIONS.includes(ext)) {
+    ElMessage.error('不支持的文件类型，仅允许图片、PDF、Office文档和TXT文件')
+    return false
+  }
+  if (file.size > MAX_FILE_SIZE) {
+    ElMessage.error('文件大小不能超过10MB')
+    return false
+  }
+  return true
 }
 
 async function handleUpload(options) {

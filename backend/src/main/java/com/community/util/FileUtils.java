@@ -1,5 +1,6 @@
 package com.community.util;
 
+import com.community.common.BusinessException;
 import com.community.entity.vo.AttachmentVO;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,16 +16,30 @@ public class FileUtils {
 
     private static final List<String> IMAGE_SUFFIX = List.of("png", "jpg", "jpeg", "gif", "webp", "bmp");
 
+    private static final List<String> ALLOWED_EXTENSIONS = List.of(
+            "jpg", "jpeg", "png", "gif", "webp", "bmp",
+            "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt"
+    );
+
+    private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
     public static String saveUploadFile(MultipartFile file, String uploadDir) throws IOException {
-        Path dir = Paths.get(uploadDir);
-        if (!Files.exists(dir)) {
-            Files.createDirectories(dir);
-        }
         String originalName = file.getOriginalFilename() == null ? "file" : file.getOriginalFilename();
         String suffix = "";
         int index = originalName.lastIndexOf('.');
         if (index >= 0) {
             suffix = originalName.substring(index);
+        }
+        String ext = suffix.isEmpty() ? "" : suffix.substring(1).toLowerCase();
+        if (!ALLOWED_EXTENSIONS.contains(ext)) {
+            throw new BusinessException("不支持的文件类型: " + ext);
+        }
+        if (file.getSize() > MAX_FILE_SIZE) {
+            throw new BusinessException("文件大小不能超过10MB");
+        }
+        Path dir = Paths.get(uploadDir);
+        if (!Files.exists(dir)) {
+            Files.createDirectories(dir);
         }
         String savedName = UUID.randomUUID().toString().replace("-", "") + suffix;
         Path target = dir.resolve(savedName);

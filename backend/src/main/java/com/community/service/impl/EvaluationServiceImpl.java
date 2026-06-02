@@ -12,6 +12,7 @@ import com.community.mapper.ApplicationFormMapper;
 import com.community.mapper.EvaluationMapper;
 import com.community.service.EvaluationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -48,7 +49,11 @@ public class EvaluationServiceImpl extends ServiceImpl<EvaluationMapper, Evaluat
             throw new BusinessException("This application has already been evaluated");
         }
         evaluation.setCreateTime(LocalDateTime.now());
-        save(evaluation);
+        try {
+            save(evaluation);
+        } catch (DuplicateKeyException e) {
+            throw new BusinessException("该申请已评价，请勿重复提交");
+        }
         fillApplicationInfo(evaluation);
         return evaluation;
     }
