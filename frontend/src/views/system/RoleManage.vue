@@ -55,6 +55,7 @@
     <!-- 分配权限弹窗 -->
     <el-dialog v-model="permDialogVisible" title="分配权限" width="500px">
       <el-tree
+        v-if="permDialogVisible"
         ref="permTreeRef"
         :data="permTree"
         show-checkbox
@@ -71,7 +72,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, nextTick } from 'vue'
 import { getRoleList, addRole, updateRole, deleteRole, getRolePermissions, assignRolePermissions } from '@/api/auth/role'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -207,6 +208,7 @@ async function openPermDialog(row) {
   } catch {
     checkedPermIds.value = []
   }
+  await nextTick()
   permDialogVisible.value = true
 }
 
