@@ -66,13 +66,13 @@
                     <el-menu-item v-if="userStore.hasPermission('stat:analysis')" index="/stat/analysis">数据分析</el-menu-item>
                 </el-sub-menu>
 
-                <el-sub-menu v-if="userStore.hasAnyPermission('evaluation:list','report')" index="/evaluation">
+                <el-sub-menu v-if="userStore.hasAnyPermission('evaluation:list','report','report:export')" index="/evaluation">
                     <template #title>
                         <el-icon><Star /></el-icon>
                         <span>服务评价</span>
                     </template>
                     <el-menu-item v-if="userStore.hasPermission('evaluation:list')" index="/evaluation">评价列表</el-menu-item>
-                    <el-menu-item v-if="userStore.hasPermission('report')" index="/report">数据报表</el-menu-item>
+                    <el-menu-item v-if="userStore.hasAnyPermission('report','report:export')" index="/report">数据报表</el-menu-item>
                 </el-sub-menu>
             </el-menu>
         </el-aside>
