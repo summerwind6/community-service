@@ -101,29 +101,48 @@ const roleRules = {
 }
 
 const permTree = [
-  { id: 1, permName: '仪表盘', children: [] },
-  { id: 2, permName: '系统管理', children: [
-    { id: 3, permName: '用户列表' },
-    { id: 4, permName: '用户新增' },
-    { id: 5, permName: '用户修改' },
-    { id: 6, permName: '用户详情' },
-    { id: 7, permName: '角色列表' }
-  ]},
-  { id: 8, permName: '服务管理', children: [
-    { id: 9, permName: '服务列表' },
-    { id: 10, permName: '服务新增' },
-    { id: 11, permName: '服务修改' },
-    { id: 12, permName: '服务删除' },
-    { id: 13, permName: '服务详情' }
-  ]},
-  { id: 14, permName: '申请管理', children: [
-    { id: 15, permName: '申请列表' },
-    { id: 16, permName: '申请审核' }
-  ]},
-  { id: 17, permName: '统计分析', children: [
-    { id: 18, permName: '趋势分析' },
-    { id: 19, permName: '分布统计' }
-  ]}
+    { id: 1, permName: '仪表盘', children: [] },
+    {
+        id: 2, permName: '系统管理',
+        children: [
+            { id: 3, permName: '用户管理' },
+            { id: 4, permName: '角色管理' },
+            { id: 5, permName: '系统配置' },
+            { id: 6, permName: '在线用户' }
+        ]
+    },
+    {
+        id: 7, permName: '服务管理',
+        children: [
+            { id: 8, permName: '居民管理' },
+            { id: 9, permName: '服务项目' },
+            { id: 10, permName: '办事指南管理' },
+            { id: 11, permName: '办事指南公开页' },
+            { id: 12, permName: '附件管理' }
+        ]
+    },
+    {
+        id: 13, permName: '申请管理',
+        children: [
+            { id: 14, permName: '申请列表' },
+            { id: 15, permName: '超时预警' },
+            { id: 16, permName: '预约管理' },
+            { id: 17, permName: '消息通知' }
+        ]
+    },
+    {
+        id: 18, permName: '统计分析',
+        children: [
+            { id: 19, permName: '数据分析' }
+        ]
+    },
+    {
+        id: 20, permName: '服务评价',
+        children: [
+            { id: 21, permName: '评价列表' },
+            { id: 22, permName: '数据报表' }
+        ]
+    }
 ]
 
 async function loadData() {

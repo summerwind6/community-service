@@ -287,60 +287,53 @@ INSERT INTO `sys_role` (`id`, `role_name`, `role_code`, `description`, `status`)
     (3, '街道审核员', 'REVIEWER', '负责审核服务申请', 1);
 
 -- -----------------------------------------------------
--- 权限码（菜单 + 按钮）
+-- 权限码（ID 1-22 与前端权限树严格对应）
+-- perm_type: menu=菜单容器, page=页面, button=操作按钮（button不在权限树中显示）
 -- -----------------------------------------------------
 INSERT INTO `sys_permission` (`id`, `perm_name`, `perm_code`, `perm_type`, `parent_id`, `url`, `sort_order`, `status`) VALUES
     -- 仪表盘
-    (1,  '仪表盘',       'stat:dashboard',   'menu',   0, '/dashboard',      1, 1),
+    (1,  '仪表盘',       'stat:dashboard',   'menu',   0,  '/dashboard',            1, 1),
     -- 系统管理
-    (2,  '系统管理',     'system',           'menu',   0, '/system',         2, 1),
-    (3,  '用户管理',     'user:list',        'button', 2, NULL,              1, 1),
-    (4,  '用户新增',     'user:add',         'button', 2, NULL,              2, 1),
-    (5,  '用户修改',     'user:update',      'button', 2, NULL,              3, 1),
-    (6,  '用户详情',     'user:detail',      'button', 2, NULL,              4, 1),
-    (7,  '角色管理',     'role:list',        'button', 2, NULL,              5, 1),
+    (2,  '系统管理',     'system',           'menu',   0,  '/system',               2, 1),
+    (3,  '用户管理',     'user:list',        'page',   2,  '/system/user',          1, 1),
+    (4,  '角色管理',     'role:list',        'page',   2,  '/system/role',          2, 1),
+    (5,  '系统配置',     'system:config',    'page',   2,  '/system/config',        3, 1),
+    (6,  '在线用户',     'system:online',    'page',   2,  '/system/online',        4, 1),
     -- 服务管理
-    (8,  '服务管理',     'service',          'menu',   0, '/service',        3, 1),
-    (9,  '服务列表',     'item:list',        'button', 8, NULL,              1, 1),
-    (10, '服务新增',     'item:add',         'button', 8, NULL,              2, 1),
-    (11, '服务修改',     'item:update',      'button', 8, NULL,              3, 1),
-    (12, '服务删除',     'item:delete',      'button', 8, NULL,              4, 1),
-    (13, '服务详情',     'item:detail',      'button', 8, NULL,              5, 1),
+    (7,  '服务管理',     'service',          'menu',   0,  '/service',              3, 1),
+    (8,  '居民管理',     'resident:list',    'page',   7,  '/resident/list',        1, 1),
+    (9,  '服务项目',     'item:list',        'page',   7,  '/service/item',         2, 1),
+    (10, '办事指南管理', 'guide:list',       'page',   7,  '/service/guide',        3, 1),
+    (11, '办事指南公开页','guide:public',    'page',   7,  '/service/guide-public', 4, 1),
+    (12, '附件管理',     'attachment:list',  'page',   7,  '/service/attachment',   5, 1),
     -- 申请管理
-    (14, '申请管理',     'apply',            'menu',   0, '/apply',          4, 1),
-    (15, '申请列表',     'apply:list',       'button', 14, NULL,             1, 1),
-    (16, '申请审核',     'apply:audit',      'button', 14, NULL,             2, 1),
+    (13, '申请管理',     'apply',            'menu',   0,  '/apply',                4, 1),
+    (14, '申请列表',     'apply:list',       'page',   13, '/apply/list',           1, 1),
+    (15, '超时预警',     'apply:overtime',   'page',   13, '/apply/overtime',       2, 1),
+    (16, '预约管理',     'appointment:list', 'page',   13, '/apply/appointment',    3, 1),
+    (17, '消息通知',     'notification:list','page',   13, '/apply/notification',   4, 1),
     -- 统计分析
-    (17, '统计分析',     'stat',             'menu',   0, '/stat',           5, 1),
-    (18, '趋势分析',     'stat:trend',       'button', 17, NULL,             1, 1),
-    (19, '分布统计',     'stat:distribution','button', 17, NULL,             2, 1),
+    (18, '统计分析',     'stat',             'menu',   0,  '/stat',                 5, 1),
+    (19, '数据分析',     'stat:analysis',    'page',   18, '/stat/analysis',        1, 1),
     -- 服务评价
-    (20, '服务评价',     'evaluation',       'menu',   0, '/evaluation',     6, 1),
-    (21, '评价列表',     'evaluation:list',  'button', 20, NULL,             1, 1),
-    (22, '评价统计',     'evaluation:stats', 'button', 20, NULL,             2, 1),
-    -- 数据报表
-    (23, '数据报表',     'report:export',    'menu',   0, '/report',         7, 1),
-    -- 预约管理
-    (24, '预约管理',     'appointment',      'menu',   0, '/appointment',    8, 1),
-    (25, '预约列表',     'appointment:list', 'button', 24, NULL,             1, 1),
-    (26, '预约管理',     'appointment:manage','button', 24, NULL,            2, 1),
-    -- 消息通知
-    (27, '消息通知',     'notification',     'menu',   0, '/notification',   9, 1),
-    (28, '通知列表',     'notification:list','button', 27, NULL,             1, 1),
-    (29, '发送通知',     'notification:send','button', 27, NULL,             2, 1),
-    -- 办事指南
-    (30, '办事指南',     'guide',            'menu',   0, '/guide',         10, 1),
-    (31, '指南管理',     'guide:manage',     'button', 30, NULL,             1, 1),
-    -- 超时预警
-    (32, '超时预警',     'warn',             'menu',   0, '/warn',          11, 1),
-    -- 材料管理
-    (33, '材料管理',     'attachment',       'menu',   0, '/attachment',    12, 1),
-    -- 居民管理
-    (34, '居民管理',     'resident:list',    'button', 2, NULL,              6, 1),
-    (35, '居民新增',     'resident:add',     'button', 2, NULL,              7, 1),
-    (36, '居民修改',     'resident:update',  'button', 2, NULL,              8, 1),
-    (37, '居民删除',     'resident:delete',  'button', 2, NULL,              9, 1),
-    (38, '居民详情',     'resident:detail',  'button', 2, NULL,             10, 1);
+    (20, '服务评价',     'evaluation',       'menu',   0,  '/evaluation',           6, 1),
+    (21, '评价列表',     'evaluation:list',  'page',   20, '/evaluation/list',      1, 1),
+    (22, '数据报表',     'report',           'page',   20, '/report',               2, 1),
+    -- 按钮权限（不在权限树中，分配页面时自动包含）
+    (23, '用户新增',     'user:add',         'button', 3,  NULL, 1, 1),
+    (24, '用户修改',     'user:update',      'button', 3,  NULL, 2, 1),
+    (25, '用户详情',     'user:detail',      'button', 3,  NULL, 3, 1),
+    (26, '申请审核',     'apply:audit',      'button', 14, NULL, 1, 1),
+    (27, '居民新增',     'resident:add',     'button', 8,  NULL, 1, 1),
+    (28, '居民修改',     'resident:update',  'button', 8,  NULL, 2, 1),
+    (29, '居民删除',     'resident:delete',  'button', 8,  NULL, 3, 1),
+    (30, '居民详情',     'resident:detail',  'button', 8,  NULL, 4, 1),
+    (31, '服务新增',     'item:add',         'button', 9,  NULL, 1, 1),
+    (32, '服务修改',     'item:update',      'button', 9,  NULL, 2, 1),
+    (33, '服务删除',     'item:delete',      'button', 9,  NULL, 3, 1),
+    (34, '服务详情',     'item:detail',      'button', 9,  NULL, 4, 1),
+    (35, '趋势分析',     'stat:trend',       'button', 19, NULL, 1, 1),
+    (36, '分布统计',     'stat:distribution','button', 19, NULL, 2, 1);
 
 -- -----------------------------------------------------
 -- 角色权限分配
@@ -350,45 +343,28 @@ INSERT INTO `sys_permission` (`id`, `perm_name`, `perm_code`, `perm_type`, `pare
 INSERT INTO `sys_role_perm` (`role_id`, `perm_id`)
 SELECT 1, id FROM `sys_permission`;
 
--- 社区受理员：仪表盘 + 服务列表 + 申请管理 + 统计分析 + 评价 + 预约 + 通知 + 居民
+-- 社区受理员：仪表盘 + 服务管理 + 申请管理 + 评价
 INSERT INTO `sys_role_perm` (`role_id`, `perm_id`) VALUES
     (2, 1),   -- 仪表盘
-    (2, 9),   -- 服务列表
-    (2, 15),  -- 申请列表
-    (2, 16),  -- 申请审核
-    (2, 18),  -- 趋势分析
-    (2, 20),  -- 服务评价
-    (2, 21),  -- 评价列表
-    (2, 22),  -- 评价统计
-    (2, 23),  -- 数据报表
-    (2, 24),  -- 预约管理
-    (2, 25),  -- 预约列表
-    (2, 26),  -- 预约管理操作
-    (2, 27),  -- 消息通知
-    (2, 28),  -- 通知列表
-    (2, 29),  -- 发送通知
-    (2, 34),  -- 居民管理
-    (2, 35),  -- 居民新增
-    (2, 36),  -- 居民修改
-    (2, 38);  -- 居民详情
+    (2, 8),   -- 居民管理
+    (2, 9),   -- 服务项目
+    (2, 10),  -- 办事指南管理
+    (2, 11),  -- 办事指南公开页
+    (2, 12),  -- 附件管理
+    (2, 14),  -- 申请列表
+    (2, 15),  -- 超时预警
+    (2, 16),  -- 预约管理
+    (2, 17),  -- 消息通知
+    (2, 21);  -- 评价列表
 
--- 街道审核员：仪表盘 + 服务列表 + 申请管理 + 统计分析 + 评价 + 预约 + 通知
+-- 街道审核员：仪表盘 + 服务管理 + 申请管理 + 统计分析
 INSERT INTO `sys_role_perm` (`role_id`, `perm_id`) VALUES
     (3, 1),   -- 仪表盘
-    (3, 9),   -- 服务列表
-    (3, 15),  -- 申请列表
-    (3, 16),  -- 申请审核
-    (3, 18),  -- 趋势分析
-    (3, 20),  -- 服务评价
-    (3, 21),  -- 评价列表
-    (3, 22),  -- 评价统计
-    (3, 23),  -- 数据报表
-    (3, 24),  -- 预约管理
-    (3, 25),  -- 预约列表
-    (3, 26),  -- 预约管理操作
-    (3, 27),  -- 消息通知
-    (3, 28),  -- 通知列表
-    (3, 29);  -- 发送通知
+    (3, 8),   -- 居民管理
+    (3, 9),   -- 服务项目
+    (3, 14),  -- 申请列表
+    (3, 15),  -- 超时预警
+    (3, 19);  -- 数据分析
 
 -- -----------------------------------------------------
 -- 默认管理员账号

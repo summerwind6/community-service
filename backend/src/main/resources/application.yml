@@ -13,7 +13,7 @@ spring:
       max-request-size: 50MB
 
   profiles:
-    active: dev
+    active: prod
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
