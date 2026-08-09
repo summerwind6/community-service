@@ -1,7 +1,7 @@
 # API 测试用例（Apifox）
 
 > 基础URL: `http://localhost:8080/api`
-> 默认账号: admin / admin123
+> 测试账号：使用 `sql/create_admin.example.sql` 的本地副本创建；下文以 `{{username}}` / `{{password}}` 代称。
 > Swagger: http://localhost:8080/api/swagger-ui.html
 
 ---
@@ -22,8 +22,8 @@ POST /api/auth/login
 Content-Type: application/json
 
 {
-  "username": "admin",
-  "password": "admin123"
+  "username": "{{username}}",
+  "password": "{{password}}"
 }
 ```
 
@@ -50,7 +50,7 @@ Content-Type: application/json
 **断言:**
 - code = 200
 - data.token 不为空
-- data.user.username = "admin"
+- data.user.username = "{{username}}"
 
 ---
 
@@ -91,14 +91,14 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "oldPassword": "admin123",
-  "newPassword": "admin456"
+  "oldPassword": "{{password}}",
+  "newPassword": "{{newPassword}}"
 }
 ```
 
 **预期响应:** code = 200
 
-> 测试后用 1.1 验证新密码有效，然后改回 admin123
+> 测试后用 1.1 验证新密码有效；如需恢复，请改回测试前设置的密码。
 
 ---
 
@@ -165,7 +165,7 @@ GET /api/user/1
 Authorization: Bearer {{token}}
 ```
 
-**断言:** code = 200, data.username = "admin"
+**断言:** code = 200, data.username = "{{username}}"
 
 ---
 

@@ -540,8 +540,7 @@ SELECT id, role_name, role_code
 FROM sys_role 
 WHERE status = 1 AND deleted = 0;
 
--- 插入默认超级管理员账号（密码：admin123）
-INSERT INTO sys_user (username, password, ...) VALUES (...);
+-- 管理员账号由 sql/create_admin.example.sql 的本地副本创建，禁止提交或使用公开默认密码。
 ```
 
 ---

@@ -203,7 +203,7 @@ CREATE TABLE `application_warning` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='申请系统预警记录';
 
 -- =====================================================
--- 10. 系统配置表 (sys_config)
+-- 11. 系统配置表 (sys_config)
 -- =====================================================
 DROP TABLE IF EXISTS `sys_config`;
 CREATE TABLE `sys_config` (
@@ -218,7 +218,7 @@ CREATE TABLE `sys_config` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统配置表';
 
 -- =====================================================
--- 11. 预约表 (appointment)
+-- 12. 预约表 (appointment)
 -- =====================================================
 DROP TABLE IF EXISTS `appointment`;
 CREATE TABLE `appointment` (
@@ -238,7 +238,7 @@ CREATE TABLE `appointment` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='预约表';
 
 -- =====================================================
--- 12. 消息通知表 (notification)
+-- 13. 消息通知表 (notification)
 -- =====================================================
 DROP TABLE IF EXISTS `notification`;
 CREATE TABLE `notification` (
@@ -257,7 +257,7 @@ CREATE TABLE `notification` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='消息通知表';
 
 -- =====================================================
--- 13. 服务评价表 (evaluation)
+-- 14. 服务评价表 (evaluation)
 -- =====================================================
 DROP TABLE IF EXISTS `evaluation`;
 CREATE TABLE `evaluation` (
@@ -272,7 +272,7 @@ CREATE TABLE `evaluation` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='服务评价表';
 
 -- =====================================================
--- 14. 办事指南表 (guide)
+-- 15. 办事指南表 (guide)
 -- =====================================================
 DROP TABLE IF EXISTS `guide`;
 CREATE TABLE `guide` (
@@ -397,14 +397,9 @@ INSERT INTO `sys_role_perm` (`role_id`, `perm_id`) VALUES
     (3, 38);
 
 -- -----------------------------------------------------
--- 默认管理员账号
--- 演示管理员默认禁用；请在部署前创建独立管理员账号。
+-- 管理员账号
+-- 初始化脚本不创建默认管理员。请执行 create_admin.example.sql 的本地副本创建独立管理员账号。
 -- -----------------------------------------------------
-INSERT INTO `sys_user` (`id`, `username`, `password`, `salt`, `real_name`, `phone`, `email`, `status`) VALUES
-    (1, 'admin', '82d1d187ddcfbf1ba740510f28308c26', 'salt123', '超级管理员（默认禁用）', '13800138000', 'admin@community.com', 0);
-
-INSERT INTO `sys_user_role` (`user_id`, `role_id`) VALUES (1, 1);
-
 -- -----------------------------------------------------
 -- 示例服务项目
 -- -----------------------------------------------------
@@ -432,5 +427,5 @@ INSERT INTO `sys_config` (`config_key`, `config_value`, `description`) VALUES
 
 -- =====================================================
 -- 数据库初始化完成
--- 默认管理员已禁用，禁止使用公开默认凭据上线。
+-- 请使用 create_admin.example.sql 的本地副本创建管理员账号后再登录。
 -- =====================================================

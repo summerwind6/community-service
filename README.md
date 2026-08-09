@@ -1,186 +1,100 @@
-# 社区便民服务申请与进度管理系统 - 快速启动指南
+# 社区便民服务申请与进度管理系统
 
-## 项目信息
-- **项目名称**: 社区便民服务申请与进度管理系统（政企简化版）
-- **初始账号**: 初始化脚本中的演示账号仅限本地开发；部署前必须创建并启用独立管理员账号
-- **后端地址**: http://localhost:8080/api
-- **前端地址**: http://localhost:3000
-- **进度查询（免登录）**: http://localhost:3000/progress
-- **Swagger文档**: http://localhost:8080/api/swagger-ui.html
+面向社区服务事项的申请、审核、进度查询与统计管理系统。项目采用前后端分离架构：后端为 Spring Boot，前端为 Vue 3。
 
----
+## 功能概览
 
-## 环境准备
+- 居民、服务事项、申请单及审核记录管理
+- 居民公开申请、进度查询、材料上传与服务评价
+- 预约、通知、办事指南、超时预警和数据报表
+- RBAC 权限管理、系统配置和在线会话管理
 
-| 软件 | 版本 | 用途 |
-|------|------|------|
-| JDK | 17+ | Java 运行环境 |
-| Maven | 3.8+ | 项目构建 |
-| MySQL | 8.0+ | 数据库 |
-| Node.js | 18+ LTS | 前端运行环境 |
-| Git | 2.40+ | 版本控制 |
+## 技术栈
 
----
+| 模块 | 技术 |
+| --- | --- |
+| 后端 | Java 17、Spring Boot 3.2、MyBatis-Plus、Shiro、MySQL 8、Redis |
+| 前端 | Vue 3、Vite、Element Plus、Pinia、ECharts |
 
-## 第一步：获取代码
+## 目录说明
+
+```text
+backend/     后端服务
+frontend/    前端应用
+sql/         数据库初始化、升级和管理员创建脚本
+docs/        接口测试、协作规范和功能分工设计
+```
+
+## 快速启动
+
+### 1. 环境要求
+
+- JDK 17+、Maven 3.8+
+- MySQL 8.0+
+- Redis（后端会话存储）
+- Node.js 18+
+
+### 2. 初始化数据库
+
+新部署时执行完整初始化脚本。该脚本会重建 `community_service` 中的业务表，请勿用于已有数据的数据库。
 
 ```bash
-git clone https://github.com/summerwind6/community-service-application-management.git
-cd community-service
-git checkout dev
+mysql -u root -p < sql/init.sql
 ```
 
----
-
-## 第二步：初始化数据库
-
-```sql
-CREATE DATABASE community_service DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-```
+初始化脚本不包含可登录的默认管理员。复制 `sql/create_admin.example.sql` 为本地文件，替换用户名和强密码占位符后执行：
 
 ```bash
-mysql -u root -p community_service < sql/init.sql
+mysql -u root -p community_service < sql/create_admin.local.sql
 ```
 
-初始化后，复制并修改 `sql/create_admin.example.sql`，创建自己的强密码管理员；不要启用或复用公开演示凭据。已有数据库则先执行 `sql/upgrade_20260809_security_and_warning.sql`。
+已有旧数据库请先备份，再执行一次升级脚本：
 
----
+```bash
+mysql -u root -p community_service < sql/upgrade_20260809.sql
+```
 
-## 第三步：启动后端
+### 3. 启动后端
 
-1. 复制 `backend/src/main/resources/application-local.example.yml` 为 `application-local.yml`，填写本地数据库密码和 JWT secret（该文件已被 Git 忽略）
-2. 或设置环境变量：`DB_URL`、`DB_USERNAME`、`DB_PASSWORD`、`JWT_SECRET`（生产环境还需 `REDIS_HOST`）
-2. IDEA 运行 `CommunityApplication.java`，或：
+复制 `backend/src/main/resources/application-local.example.yml` 为 `application-local.yml`，填写数据库密码、Redis 密码（如有）和至少 32 字节的 JWT 密钥。该本地文件已被 Git 忽略。
+
 ```bash
 cd backend
 mvn spring-boot:run
 ```
-3. 验证：http://localhost:8080/api/swagger-ui.html
 
----
+后端默认地址：`http://localhost:8080/api`
 
-## 第四步：启动前端
+Swagger：`http://localhost:8080/api/swagger-ui.html`
+
+### 4. 启动前端
 
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-访问 http://localhost:3000
 
----
+前端默认地址：`http://localhost:3000`；居民办事入口：`http://localhost:3000/resident/apply`。
 
-## 功能模块
+## 数据库脚本说明
 
-### 管理后台（需登录）
-| 模块 | 页面路由 | 说明 |
-|------|---------|------|
-| 仪表盘 | `/dashboard` | ECharts 图表统计 |
-| 用户管理 | `/system/user` | 管理员增删改查 |
-| 角色管理 | `/system/role` | 角色权限配置 |
-| 系统配置 | `/system/config` | 基础参数设置 |
-| 居民管理 | `/resident/list` | 居民信息 CRUD |
-| 服务项目 | `/service/item` | 便民服务事项管理 |
-| 申请管理 | `/apply/list` | 申请审核流程 |
-| 统计分析 | `/stat/analysis` | 趋势/分布图表 |
+| 文件 | 用途 |
+| --- | --- |
+| `sql/init.sql` | 新环境完整初始化：建库、建表、基础角色、权限、服务事项和系统配置 |
+| `sql/create_admin.example.sql` | 创建独立超级管理员的模板；请复制并替换占位符后执行 |
+| `sql/upgrade_20260809.sql` | 旧数据库升级到当前结构；包含预警字段、权限修复和旧演示账号禁用 |
 
-### 公开页面（免登录）
-| 页面 | 路由 | 说明 |
-|------|------|------|
-| 进度查询 | `/progress` | 手机号查询申请进度 |
-| 管理员登录 | `/login` | 登录页含进度查询入口 |
+## 文档
 
----
+| 文档 | 说明 |
+| --- | --- |
+| `docs/API测试用例.md` | 接口联调与验收用例 |
+| `docs/TEAM_COLLABORATION_GUIDE.md` | 团队协作与提交规范 |
+| `docs/新增功能设计文档.md` | 新增功能说明与成员分工 |
 
-## 后端 API 接口
+## 开发约定
 
-### 认证管理 `/auth`
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| POST | `/auth/login` | 登录 |
-| POST | `/auth/logout` | 登出 |
-| GET | `/auth/info` | 当前用户信息 |
-| PUT | `/auth/change-password` | 修改密码 |
-
-### 居民管理 `/resident`
-| 方法 | 路径 | 权限 | 说明 |
-|------|------|------|------|
-| GET | `/resident/list` | resident:list | 分页列表 |
-| GET | `/resident/{id}` | resident:detail | 详情 |
-| POST | `/resident` | resident:add | 新增 |
-| PUT | `/resident` | resident:update | 编辑 |
-| DELETE | `/resident/{id}` | resident:delete | 删除 |
-| GET | `/resident/by-phone` | 无 | 手机号查询 |
-
-### 服务事项 `/item`
-| 方法 | 路径 | 权限 | 说明 |
-|------|------|------|------|
-| GET | `/item/list` | 无 | 分页筛选 |
-| GET | `/item/enabled` | 无 | 已启用列表 |
-| GET | `/item/{id}` | item:detail | 详情 |
-| POST | `/item` | item:add | 新增 |
-| PUT | `/item` | item:update | 编辑 |
-| PUT | `/item/{id}/status` | item:update | 启停切换 |
-| DELETE | `/item/{id}` | item:delete | 删除 |
-
-### 申请管理 `/apply`
-| 方法 | 路径 | 权限 | 说明 |
-|------|------|------|------|
-| POST | `/apply` | 无 | 提交申请 |
-| GET | `/apply/list` | apply:list | 分页筛选 |
-| GET | `/apply/progress` | 无 | 手机号进度查询 |
-| GET | `/apply/{id}` | 无 | 申请详情 |
-| GET | `/apply/{id}/audit-records` | 无 | 审核记录 |
-| POST | `/apply/{id}/review` | apply:review | 初审 |
-| POST | `/apply/{id}/approve` | apply:approve | 复审 |
-
-### 数据统计 `/stat`
-| 方法 | 路径 | 权限 | 说明 |
-|------|------|------|------|
-| GET | `/stat/dashboard` | stat:dashboard | 仪表盘数据 |
-| GET | `/stat/trend` | stat:trend | 近7天趋势 |
-| GET | `/stat/distribution` | stat:distribution | 事项分布 |
-
----
-
-## 常见问题
-
-**端口被占用**：修改 `application.yml` 的 `server.port`，或 `vite.config.js` 的 proxy 目标地址。
-
-**跨域错误**：确认 Vite 代理配置 `frontend/vite.config.js` 中 `/api` 指向 `http://localhost:8080`。
-
-**登录失败**：确认部署环境已配置独立管理员账号和安全的 JWT secret；不要使用公开文档中的演示凭据。
-
-**前端依赖安装慢**：
-```bash
-npm install --registry=https://registry.npmmirror.com
-```
-
----
-
-## 开发流程
-
-```bash
-git checkout dev
-git pull origin dev
-git checkout -b feature/姓名/模块名
-# 开发...
-git add <具体文件>
-git commit -m "模块：变更说明"
-# 测试通过后通知合并
-```
-
----
-
-## 文档索引
-
-| 文档 | 路径 |
-|------|------|
-| 项目计划书 | `项目计划书.md` |
-| 数据库脚本 | `sql/init.sql` |
-| Git 命令记录 | `docs/git_commands.md` |
-| 任务计划 | `task_plan.md` |
-
----
-
-*最后更新: 2026-05-15*
+- 不要提交 `application-local.yml`、真实密码、JWT 密钥或本地创建的管理员脚本。
+- 数据库结构变更应提供独立升级脚本，并在合并前同步给团队成员。
+- 提交前至少执行后端测试和前端构建：`mvn test`、`npm run build`。
