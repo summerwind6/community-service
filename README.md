@@ -25,7 +25,7 @@
 ## 第一步：获取代码
 
 ```bash
-git clone https://gitee.com/summerwind266/community-service.git
+git clone https://github.com/summerwind6/community-service-application-management.git
 cd community-service
 git checkout dev
 ```
