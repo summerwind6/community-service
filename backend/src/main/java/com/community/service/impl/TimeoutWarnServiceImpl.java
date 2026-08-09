@@ -5,16 +5,19 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.community.common.BusinessException;
 import com.community.entity.po.ApplicationForm;
 import com.community.entity.po.Notification;
+import com.community.entity.po.ApplicationWarning;
 import com.community.entity.po.ServiceItem;
 import com.community.entity.vo.PageVO;
 import com.community.entity.vo.TimeoutWarnVO;
 import com.community.mapper.ApplicationFormMapper;
+import com.community.mapper.ApplicationWarningMapper;
 import com.community.service.NotificationService;
 import com.community.service.ServiceItemService;
 import com.community.service.TimeoutWarnService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.dao.DuplicateKeyException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -31,6 +34,9 @@ public class TimeoutWarnServiceImpl extends ServiceImpl<ApplicationFormMapper, A
 
     @Autowired
     private NotificationService notificationService;
+
+    @Autowired
+    private ApplicationWarningMapper applicationWarningMapper;
 
     @Override
     public PageVO<TimeoutWarnVO> getTimeoutWarnList(Integer pageNum, Integer pageSize) {
@@ -73,6 +79,45 @@ public class TimeoutWarnServiceImpl extends ServiceImpl<ApplicationFormMapper, A
         notification.setTargetName(form.getResidentName());
         notification.setIsRead(0);
         notification.setCreateTime(LocalDateTime.now());
+        notificationService.sendNotification(notification);
+    }
+
+    @Override
+    @Transactional
+    public void createSystemWarnings() {
+        for (TimeoutWarnVO warning : buildTimeoutList()) {
+            createSystemWarning(warning);
+        }
+    }
+
+    protected void createSystemWarning(TimeoutWarnVO warning) {
+        ApplicationWarning record = new ApplicationWarning();
+        record.setApplicationId(warning.getApplicationId());
+        record.setWarnType("SYSTEM_TIMEOUT");
+        record.setTimeoutDays(warning.getTimeoutDays());
+        record.setWarnTime(LocalDateTime.now());
+        try {
+            applicationWarningMapper.insert(record);
+        } catch (DuplicateKeyException duplicate) {
+            return;
+        }
+        ApplicationForm form = getById(warning.getApplicationId());
+        if (form == null) {
+            return;
+        }
+        form.setLastWarnTime(record.getWarnTime());
+        form.setWarnCount((form.getWarnCount() == null ? 0 : form.getWarnCount()) + 1);
+        form.setUpdateTime(record.getWarnTime());
+        updateById(form);
+
+        Notification notification = new Notification();
+        notification.setTitle("申请超时预警：" + form.getApplyNo());
+        notification.setContent("申请已超时 " + warning.getTimeoutDays() + " 天，请及时处理。");
+        notification.setType("SYSTEM_TIMEOUT");
+        notification.setTargetId(form.getHandlerId());
+        notification.setTargetName(form.getHandlerName());
+        notification.setIsRead(0);
+        notification.setCreateTime(record.getWarnTime());
         notificationService.sendNotification(notification);
     }
 

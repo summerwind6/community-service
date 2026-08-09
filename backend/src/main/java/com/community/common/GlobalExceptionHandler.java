@@ -13,6 +13,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.http.ResponseEntity;
 
 @Slf4j
 @RestControllerAdvice
@@ -21,9 +22,10 @@ public class GlobalExceptionHandler {
     // ==================== 业务异常 ====================
 
     @ExceptionHandler(BusinessException.class)
-    public Result<String> handleBusinessException(BusinessException e) {
+    public ResponseEntity<Result<String>> handleBusinessException(BusinessException e) {
         log.error("业务异常：{}", e.getMessage());
-        return Result.error(e.getCode(), e.getMessage());
+        return ResponseEntity.status(e.getCode() == 429 ? 429 : 200)
+                .body(Result.error(e.getCode(), e.getMessage()));
     }
 
     // ==================== Shiro 认证异常 ====================

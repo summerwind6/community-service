@@ -1,0 +1,11 @@
+# Copy this file to application-local.yml for local development. Never commit the copy.
+spring:
+  datasource:
+    password: change-me
+  data:
+    redis:
+      password: ""
+
+jwt:
+  # At least 32 bytes; generate a different value for every environment.
+  secret: replace-with-a-random-secret-at-least-32-bytes-long

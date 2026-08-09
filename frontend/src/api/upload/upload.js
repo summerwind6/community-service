@@ -12,7 +12,7 @@ export function uploadFile(file) {
     const formData = new FormData()
     formData.append('file', file)
     return request({
-        url: '/upload',
+        url: '/upload/public',
         method: 'post',
         data: formData,
         headers: {

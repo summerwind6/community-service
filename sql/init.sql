@@ -141,7 +141,7 @@ CREATE TABLE `service_item` (
 DROP TABLE IF EXISTS `application_form`;
 CREATE TABLE `application_form` (
     `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-    `apply_no` VARCHAR(50) NOT NULL COMMENT '申请编号（唯一）',
+    `apply_no` VARCHAR(50) DEFAULT NULL COMMENT '申请编号（唯一）',
     `resident_id` BIGINT DEFAULT NULL COMMENT '申请人ID（居民表）',
     `resident_name` VARCHAR(50) DEFAULT NULL COMMENT '申请人姓名',
     `gender` CHAR(1) DEFAULT NULL COMMENT '性别：M-男 F-女',
@@ -149,11 +149,14 @@ CREATE TABLE `application_form` (
     `service_item_name` VARCHAR(100) DEFAULT NULL COMMENT '服务项目名称',
     `apply_content` TEXT DEFAULT NULL COMMENT '申请内容描述',
     `attachments` TEXT DEFAULT NULL COMMENT '附件路径（JSON数组）',
-    `status` VARCHAR(20) DEFAULT 'PENDING' COMMENT '状态：PENDING待受理/PROCESSING处理中/APPROVED通过/REJECTED驳回/COMPLETED已完成',
+    `status` VARCHAR(20) DEFAULT 'PENDING' COMMENT '状态：PENDING待受理/PROCESSING处理中/REJECTED驳回/COMPLETED已完成',
     `fee` DECIMAL(10,2) DEFAULT 0.00 COMMENT '实际费用',
     `handler_id` BIGINT DEFAULT NULL COMMENT '当前处理人ID',
     `handler_name` VARCHAR(50) DEFAULT NULL COMMENT '当前处理人姓名',
     `remark` VARCHAR(500) DEFAULT NULL COMMENT '备注',
+    `version` INT NOT NULL DEFAULT 0 COMMENT '乐观锁版本号',
+    `last_warn_time` DATETIME DEFAULT NULL COMMENT '最后一次系统预警时间',
+    `warn_count` INT NOT NULL DEFAULT 0 COMMENT '系统预警次数',
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `deleted` TINYINT DEFAULT 0 COMMENT '逻辑删除：0-未删 1-已删',
@@ -183,6 +186,21 @@ CREATE TABLE `audit_record` (
     KEY `idx_application_id` (`application_id`),
     KEY `idx_auditor_id` (`auditor_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='审核记录表';
+
+-- =====================================================
+-- 10. 申请超时预警记录表（系统预警与人工催办分离）
+-- =====================================================
+DROP TABLE IF EXISTS `application_warning`;
+CREATE TABLE `application_warning` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT,
+    `application_id` BIGINT NOT NULL,
+    `warn_type` VARCHAR(30) NOT NULL,
+    `timeout_days` INT NOT NULL DEFAULT 0,
+    `warn_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_application_warn_type` (`application_id`, `warn_type`),
+    KEY `idx_warn_time` (`warn_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='申请系统预警记录';
 
 -- =====================================================
 -- 10. 系统配置表 (sys_config)
@@ -323,7 +341,7 @@ INSERT INTO `sys_permission` (`id`, `perm_name`, `perm_code`, `perm_type`, `pare
     (23, '用户新增',     'user:add',         'button', 3,  NULL, 1, 1),
     (24, '用户修改',     'user:update',      'button', 3,  NULL, 2, 1),
     (25, '用户详情',     'user:detail',      'button', 3,  NULL, 3, 1),
-    (26, '申请审核',     'apply:audit',      'button', 14, NULL, 1, 1),
+    (26, '申请初审',     'apply:review',     'button', 14, NULL, 1, 1),
     (27, '居民新增',     'resident:add',     'button', 8,  NULL, 1, 1),
     (28, '居民修改',     'resident:update',  'button', 8,  NULL, 2, 1),
     (29, '居民删除',     'resident:delete',  'button', 8,  NULL, 3, 1),
@@ -333,7 +351,13 @@ INSERT INTO `sys_permission` (`id`, `perm_name`, `perm_code`, `perm_type`, `pare
     (33, '服务删除',     'item:delete',      'button', 9,  NULL, 3, 1),
     (34, '服务详情',     'item:detail',      'button', 9,  NULL, 4, 1),
     (35, '趋势分析',     'stat:trend',       'button', 19, NULL, 1, 1),
-    (36, '分布统计',     'stat:distribution','button', 19, NULL, 2, 1);
+    (36, '分布统计',     'stat:distribution','button', 19, NULL, 2, 1),
+    (37, '申请复审',     'apply:approve',    'button', 14, NULL, 2, 1),
+    (38, '评价列表',     'evaluation:list',  'button', 21, NULL, 1, 1),
+    (39, '指南维护',     'guide:manage',     'button', 10, NULL, 1, 1),
+    (40, '预约管理',     'appointment:manage','button', 16, NULL, 1, 1),
+    (41, '发送通知',     'notification:send','button', 17, NULL, 1, 1),
+    (42, '导出报表',     'report:export',    'button', 22, NULL, 1, 1);
 
 -- -----------------------------------------------------
 -- 角色权限分配
@@ -364,14 +388,20 @@ INSERT INTO `sys_role_perm` (`role_id`, `perm_id`) VALUES
     (3, 9),   -- 服务项目
     (3, 14),  -- 申请列表
     (3, 15),  -- 超时预警
-    (3, 19);  -- 数据分析
+    (3, 19),  -- 数据分析
+    (3, 37);  -- 申请复审
+
+INSERT INTO `sys_role_perm` (`role_id`, `perm_id`) VALUES
+    (2, 26),
+    (2, 38),
+    (3, 38);
 
 -- -----------------------------------------------------
 -- 默认管理员账号
--- 密码: admin123（盐值: salt123）
+-- 演示管理员默认禁用；请在部署前创建独立管理员账号。
 -- -----------------------------------------------------
 INSERT INTO `sys_user` (`id`, `username`, `password`, `salt`, `real_name`, `phone`, `email`, `status`) VALUES
-    (1, 'admin', '82d1d187ddcfbf1ba740510f28308c26', 'salt123', '超级管理员', '13800138000', 'admin@community.com', 1);
+    (1, 'admin', '82d1d187ddcfbf1ba740510f28308c26', 'salt123', '超级管理员（默认禁用）', '13800138000', 'admin@community.com', 0);
 
 INSERT INTO `sys_user_role` (`user_id`, `role_id`) VALUES (1, 1);
 
@@ -402,5 +432,5 @@ INSERT INTO `sys_config` (`config_key`, `config_value`, `description`) VALUES
 
 -- =====================================================
 -- 数据库初始化完成
--- 默认登录账号: admin / admin123
+-- 默认管理员已禁用，禁止使用公开默认凭据上线。
 -- =====================================================

@@ -10,4 +10,7 @@ public interface TimeoutWarnService {
     long getTimeoutWarnCount();
 
     void urgeApplication(Long id, Long operatorId, String operatorName);
+
+    /** Creates one SYSTEM_TIMEOUT warning per overdue application. Safe to run repeatedly. */
+    void createSystemWarnings();
 }

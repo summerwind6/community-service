@@ -27,6 +27,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import com.community.util.DataMaskingUtils;
+import com.community.util.ShiroUtils;
 
 @Tag(name = "Report", description = "Excel export")
 @RestController
@@ -94,8 +96,9 @@ public class ReportController {
             ResidentInfo item = records.get(i);
             Row row = sheet.createRow(i + 1);
             row.createCell(0).setCellValue(value(item.getName()));
-            row.createCell(1).setCellValue(value(item.getPhone()));
-            row.createCell(2).setCellValue(value(item.getIdCard()));
+            boolean fullPii = ShiroUtils.hasRole("ADMIN");
+            row.createCell(1).setCellValue(value(fullPii ? item.getPhone() : DataMaskingUtils.phone(item.getPhone())));
+            row.createCell(2).setCellValue(value(fullPii ? item.getIdCard() : DataMaskingUtils.idCard(item.getIdCard())));
             row.createCell(3).setCellValue(value(item.getCommunity()));
             row.createCell(4).setCellValue(value(item.getAddress()));
             row.createCell(5).setCellValue(value(item.getGender()));

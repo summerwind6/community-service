@@ -55,23 +55,18 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Override
     public LoginVO login(String username, String password) {
         SysUser user = getUserByUsername(username);
-        System.out.println("[DEBUG] getUserByUsername result: " + (user != null ? "found, salt=" + user.getSalt() + ", storedHash=" + user.getPassword() : "NOT FOUND"));
         if (user == null) {
             throw new BusinessException("用户名或密码错误");
         }
 
         String hashedPassword = PasswordUtil.encrypt(password, user.getSalt());
-        System.out.println("[DEBUG] Input password hashed: " + hashedPassword);
-        System.out.println("[DEBUG] Stored password hash: " + user.getPassword());
 
         Subject subject = SecurityUtils.getSubject();
         UsernamePasswordToken token = new UsernamePasswordToken(username, hashedPassword);
         try {
             subject.login(token);
             subject.getSession().setAttribute("username", username);
-            System.out.println("[DEBUG] Shiro login SUCCESS");
         } catch (AuthenticationException e) {
-            System.out.println("[DEBUG] Shiro login FAILED: " + e.getClass().getSimpleName() + " - " + e.getMessage());
             throw new BusinessException("用户名或密码错误");
         }
 

@@ -84,6 +84,11 @@
                   <el-input v-model="applyForm.phone" placeholder="请输入手机号" />
                 </el-form-item>
               </el-col>
+              <el-col :span="12">
+                <el-form-item label="身份证号" prop="idCard">
+                  <el-input v-model="applyForm.idCard" placeholder="用于资料校验" />
+                </el-form-item>
+              </el-col>
             </el-row>
 
             <el-row :gutter="20">
@@ -145,8 +150,11 @@
 
         <el-tab-pane label="Step2 查进度" name="progress">
           <el-form :inline="true" :model="progressForm" class="progress-search">
-            <el-form-item label="手机号">
-              <el-input v-model="progressForm.phone" placeholder="请输入手机号" clearable />
+            <el-form-item label="申请编号">
+              <el-input v-model="progressForm.applyNo" placeholder="请输入申请编号" clearable />
+            </el-form-item>
+            <el-form-item label="手机号后四位">
+              <el-input v-model="progressForm.phoneLast4" maxlength="4" placeholder="例如 1234" clearable />
             </el-form-item>
             <el-form-item>
               <el-button type="primary" @click="loadProgress">查询进度</el-button>
@@ -172,14 +180,8 @@
                 </el-tag>
               </div>
               <el-timeline>
-                <el-timeline-item timestamp="提交申请" color="#409EFF">
-                  {{ item.createTime }}
-                </el-timeline-item>
-                <el-timeline-item timestamp="申请内容" color="#67C23A">
-                  {{ item.applyContent || '-' }}
-                </el-timeline-item>
-                <el-timeline-item v-if="item.remark" timestamp="备注" color="#E6A23C">
-                  {{ item.remark }}
+                <el-timeline-item timestamp="最后更新时间" color="#409EFF">
+                  {{ item.updateTime || '-' }}
                 </el-timeline-item>
                 <el-timeline-item v-if="item.status === 'COMPLETED'" timestamp="办结" color="#67C23A">
                   已办结，可前往评价
@@ -243,7 +245,7 @@ import { Reading } from '@element-plus/icons-vue'
 import { getEnabledItems } from '@/api/item/item'
 import { submitPublicApply, getApplyProgress } from '@/api/apply/public'
 import { uploadFile } from '@/api/upload/upload'
-import { submitEvaluation } from '@/api/evaluation/evaluation'
+import { submitPublicEvaluation } from '@/api/evaluation/evaluation'
 import { getPublicGuides } from '@/api/guide/guide'
 import { formatStatus } from '@/utils/common'
 
@@ -265,6 +267,7 @@ const applyFormRef = ref()
 const applyForm = reactive({
   residentName: '',
   phone: '',
+  idCard: '',
   gender: '',
   serviceItemId: null,
   applyContent: '',
@@ -277,12 +280,16 @@ const applyRules = {
     { required: true, message: '请输入手机号', trigger: 'blur' },
     { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' }
   ],
+  idCard: [
+    { required: true, message: '请输入身份证号', trigger: 'blur' },
+    { pattern: /^(\d{15}|\d{17}[0-9Xx])$/, message: '身份证格式不正确', trigger: 'blur' }
+  ],
   gender: [{ required: true, message: '请选择性别', trigger: 'change' }],
   serviceItemId: [{ required: true, message: '请选择服务事项', trigger: 'change' }],
   applyContent: [{ required: true, message: '请填写申请内容', trigger: 'blur' }]
 }
 
-const progressForm = reactive({ phone: '' })
+const progressForm = reactive({ applyNo: '', phoneLast4: '' })
 const evaluationForm = reactive({ score: 5, content: '' })
 
 const itemNameMap = computed(() => {
@@ -399,16 +406,18 @@ async function submitApplyForm() {
     const payload = {
       residentName: applyForm.residentName,
       phone: applyForm.phone,
+      idCard: applyForm.idCard,
       gender: normalizeGender(applyForm.gender),
       serviceItemId: applyForm.serviceItemId,
       applyContent: applyForm.applyContent,
       attachments: JSON.stringify(applyForm.attachments),
       fee: selectedItem.value?.fee || 0
     }
-    await submitPublicApply(payload)
+    const result = await submitPublicApply(payload)
     ElMessage.success('申请提交成功')
     activeStepName.value = 'progress'
-    progressForm.phone = applyForm.phone
+    progressForm.applyNo = result.data.applyNo
+    progressForm.phoneLast4 = applyForm.phone.slice(-4)
     await loadProgress()
   } catch {
     // handled by interceptor
@@ -418,12 +427,12 @@ async function submitApplyForm() {
 }
 
 async function loadProgress() {
-  if (!progressForm.phone) {
-    ElMessage.warning('请输入手机号')
+  if (!progressForm.applyNo || !/^\d{4}$/.test(progressForm.phoneLast4)) {
+    ElMessage.warning('请输入申请编号和手机号后四位')
     return
   }
-  const res = await getApplyProgress({ phone: progressForm.phone })
-  progressList.value = res.data || []
+  const res = await getApplyProgress({ ...progressForm })
+  progressList.value = res.data ? [res.data] : []
 }
 
 function openEvaluation(item) {
@@ -444,14 +453,15 @@ async function submitEvaluationForm() {
   }
   evaluateLoading.value = true
   try {
-    await submitEvaluation({
-      applicationId: selectedApply.value.id,
+    await submitPublicEvaluation({
+      applyNo: selectedApply.value.applyNo,
+      phoneLast4: progressForm.phoneLast4,
       score: evaluationForm.score,
       content: evaluationForm.content
     })
     if (selectedApply.value) {
       selectedApply.value.evaluated = true
-      const idx = progressList.value.findIndex(item => item.id === selectedApply.value.id)
+      const idx = progressList.value.findIndex(item => item.applyNo === selectedApply.value.applyNo)
       if (idx !== -1) {
         progressList.value[idx].evaluated = true
       }

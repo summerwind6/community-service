@@ -6,15 +6,24 @@ import com.community.dto.PublicApplyDTO;
 import com.community.entity.po.ApplicationForm;
 import com.community.entity.po.ResidentInfo;
 import com.community.entity.po.ServiceItem;
+import com.community.entity.vo.PublicApplyResultVO;
+import com.community.entity.vo.AttachmentVO;
 import com.community.service.ApplicationFormService;
+import com.community.service.PublicRateLimitService;
 import com.community.service.ResidentInfoService;
 import com.community.service.ServiceItemService;
+import com.community.service.TemporaryAttachmentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Tag(name = "居民公开申请", description = "居民免登录提交申请与进度查询")
 @RestController
@@ -30,20 +39,31 @@ public class PublicApplyController {
     @Autowired
     private ServiceItemService serviceItemService;
 
+    @Autowired
+    private PublicRateLimitService publicRateLimitService;
+
+    @Autowired
+    private TemporaryAttachmentService temporaryAttachmentService;
+
+    @Value("${app.public.apply-phone-limit-per-hour}")
+    private int applyPhoneLimit;
+
+    @Value("${app.public.apply-ip-limit-per-hour}")
+    private int applyIpLimit;
+
     @Operation(summary = "居民公开提交申请")
     @PostMapping("/public")
-    public Result<ApplicationForm> publicSubmit(@RequestBody PublicApplyDTO dto) {
-        if (dto.getPhone() == null || dto.getPhone().isBlank()) {
-            throw new BusinessException("手机号不能为空");
+    @Transactional
+    public Result<PublicApplyResultVO> publicSubmit(@Valid @RequestBody PublicApplyDTO dto,
+                                                     HttpServletRequest request) {
+        publicRateLimitService.check("public-apply-phone", dto.getPhone(), applyPhoneLimit, 3600);
+        publicRateLimitService.check("public-apply-ip", clientIp(request), applyIpLimit, 3600);
+        Long serviceItemId;
+        try {
+            serviceItemId = Long.valueOf(dto.getServiceItemId());
+        } catch (NumberFormatException e) {
+            throw new BusinessException(400, "服务事项格式不正确");
         }
-        if (dto.getResidentName() == null || dto.getResidentName().isBlank()) {
-            throw new BusinessException("居民姓名不能为空");
-        }
-        if (dto.getServiceItemId() == null || dto.getServiceItemId().isBlank()) {
-            throw new BusinessException("服务事项不能为空");
-        }
-
-        Long serviceItemId = Long.valueOf(dto.getServiceItemId());
         ServiceItem item = serviceItemService.getItemById(serviceItemId);
         if (item == null) {
             throw new BusinessException("服务事项不存在");
@@ -65,6 +85,11 @@ public class PublicApplyController {
             resident.setUpdateTime(LocalDateTime.now());
             residentInfoService.addResident(resident);
         } else {
+            if (resident.getIdCard() == null || resident.getIdCard().length() < 6 || dto.getIdCard().length() < 6
+                    || !resident.getIdCard().regionMatches(true, resident.getIdCard().length() - 6,
+                    dto.getIdCard(), dto.getIdCard().length() - 6, 6)) {
+                throw new BusinessException(403, "已有居民资料校验失败，请核对身份证后六位");
+            }
             resident.setName(dto.getResidentName());
             resident.setIdCard(dto.getIdCard());
             resident.setAddress(dto.getAddress());
@@ -81,8 +106,18 @@ public class PublicApplyController {
         form.setServiceItemId(item.getId());
         form.setServiceItemName(item.getItemName());
         form.setApplyContent(dto.getApplyContent());
-        form.setAttachments(dto.getAttachments());
+        form.setAttachments(toAttachmentsJson(temporaryAttachmentService.consumeAll(dto.getAttachments())));
         form.setFee(item.getFee());
-        return Result.success(applicationFormService.submitApplication(form));
+        ApplicationForm submitted = applicationFormService.submitApplication(form);
+        return Result.success(new PublicApplyResultVO(submitted.getApplyNo()));
+    }
+
+    private String toAttachmentsJson(List<String> attachments) {
+        return attachments.stream().map(path -> "\"" + path + "\"").collect(java.util.stream.Collectors.joining(",", "[", "]"));
+    }
+
+    private String clientIp(HttpServletRequest request) {
+        String forwarded = request.getHeader("X-Forwarded-For");
+        return forwarded == null || forwarded.isBlank() ? request.getRemoteAddr() : forwarded.split(",")[0].trim();
     }
 }

@@ -1,6 +1,7 @@
 package com.community.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.community.common.BusinessException;
@@ -10,7 +11,9 @@ import com.community.entity.po.AuditRecord;
 import com.community.entity.po.Notification;
 import com.community.entity.po.ResidentInfo;
 import com.community.entity.po.ServiceItem;
+import com.community.entity.enums.ApplicationStatus;
 import com.community.entity.vo.PageVO;
+import com.community.entity.vo.PublicProgressVO;
 import com.community.mapper.ApplicationFormMapper;
 import com.community.service.ApplicationFormService;
 import com.community.service.AuditRecordService;
@@ -28,6 +31,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class ApplicationFormServiceImpl extends ServiceImpl<ApplicationFormMapper, ApplicationForm> implements ApplicationFormService {
@@ -70,10 +74,12 @@ public class ApplicationFormServiceImpl extends ServiceImpl<ApplicationFormMappe
             form.setServiceItemName(item.getItemName());
             form.setFee(item.getFee());
         }
-        form.setApplyNo(generateApplyNo());
-        form.setStatus("PENDING");
+        form.setStatus(ApplicationStatus.PENDING.name());
+        form.setVersion(0);
         form.setCreateTime(LocalDateTime.now());
         save(form);
+        form.setApplyNo(generateApplyNo(form.getId()));
+        updateById(form);
         return form;
     }
 
@@ -112,31 +118,24 @@ public class ApplicationFormServiceImpl extends ServiceImpl<ApplicationFormMappe
         if (form == null) {
             throw new BusinessException("申请单不存在");
         }
-        if (!"PENDING".equals(form.getStatus())) {
+        if (ApplicationStatus.from(form.getStatus()) != ApplicationStatus.PENDING) {
             throw new BusinessException("当前状态不允许初审，仅待受理状态可操作");
         }
-        if ("REJECTED".equals(result)) {
-            form.setStatus("REJECTED");
-        } else {
-            form.setStatus("PROCESSING");
-        }
-        form.setRemark(opinion);
-        form.setHandlerId(auditorId);
-        form.setHandlerName(auditorName);
-        form.setUpdateTime(LocalDateTime.now());
-        updateById(form);
+        ApplicationStatus target = ApplicationStatus.auditResult(result,
+                Set.of(ApplicationStatus.PROCESSING, ApplicationStatus.REJECTED));
+        transition(form, ApplicationStatus.PENDING, target, opinion, auditorId, auditorName);
         AuditRecord record = new AuditRecord();
         record.setApplicationId(id);
         record.setAuditType("COMMUNITY");
         record.setAuditorId(auditorId);
         record.setAuditorName(auditorName);
-        record.setAuditResult(result);
+        record.setAuditResult(target.name());
         record.setAuditOpinion(opinion);
         record.setAuditTime(LocalDateTime.now());
         record.setCreateTime(LocalDateTime.now());
         auditRecordService.createAuditRecord(record);
         // 审核后自动发送通知给居民
-        sendAuditNotification(form, result, opinion);
+        sendAuditNotification(form, target.name(), opinion);
     }
 
     @Override
@@ -146,31 +145,24 @@ public class ApplicationFormServiceImpl extends ServiceImpl<ApplicationFormMappe
         if (form == null) {
             throw new BusinessException("申请单不存在");
         }
-        if (!"PROCESSING".equals(form.getStatus())) {
+        if (ApplicationStatus.from(form.getStatus()) != ApplicationStatus.PROCESSING) {
             throw new BusinessException("当前状态不允许复审，仅处理中状态可操作");
         }
-        if ("REJECTED".equals(result)) {
-            form.setStatus("REJECTED");
-        } else {
-            form.setStatus("COMPLETED");
-        }
-        form.setRemark(opinion);
-        form.setHandlerId(auditorId);
-        form.setHandlerName(auditorName);
-        form.setUpdateTime(LocalDateTime.now());
-        updateById(form);
+        ApplicationStatus target = ApplicationStatus.auditResult(result,
+                Set.of(ApplicationStatus.COMPLETED, ApplicationStatus.REJECTED));
+        transition(form, ApplicationStatus.PROCESSING, target, opinion, auditorId, auditorName);
         AuditRecord record = new AuditRecord();
         record.setApplicationId(id);
         record.setAuditType("STREET");
         record.setAuditorId(auditorId);
         record.setAuditorName(auditorName);
-        record.setAuditResult(result);
+        record.setAuditResult(target.name());
         record.setAuditOpinion(opinion);
         record.setAuditTime(LocalDateTime.now());
         record.setCreateTime(LocalDateTime.now());
         auditRecordService.createAuditRecord(record);
         // 审核后自动发送通知给居民
-        sendAuditNotification(form, result, opinion);
+        sendAuditNotification(form, target.name(), opinion);
     }
 
     @Override
@@ -190,6 +182,26 @@ public class ApplicationFormServiceImpl extends ServiceImpl<ApplicationFormMappe
         List<ApplicationForm> forms = list(wrapper);
         forms.forEach(form -> form.setEvaluated(isApplicationEvaluated(form.getId())));
         return forms;
+    }
+
+    @Override
+    public PublicProgressVO getPublicProgress(String applyNo, String phoneLast4) {
+        ApplicationForm form = getOne(new LambdaQueryWrapper<ApplicationForm>()
+                .eq(ApplicationForm::getApplyNo, applyNo), false);
+        if (form == null || form.getResidentId() == null) {
+            throw new BusinessException(404, "申请不存在或验证信息错误");
+        }
+        ResidentInfo resident = residentInfoService.getResidentById(form.getResidentId());
+        if (resident == null || resident.getPhone() == null || !resident.getPhone().endsWith(phoneLast4)) {
+            throw new BusinessException(404, "申请不存在或验证信息错误");
+        }
+        PublicProgressVO vo = new PublicProgressVO();
+        vo.setApplyNo(form.getApplyNo());
+        vo.setServiceItemName(form.getServiceItemName());
+        vo.setStatus(form.getStatus());
+        vo.setUpdateTime(form.getUpdateTime());
+        vo.setEvaluated(isApplicationEvaluated(form.getId()));
+        return vo;
     }
 
     @Override
@@ -238,20 +250,33 @@ public class ApplicationFormServiceImpl extends ServiceImpl<ApplicationFormMappe
         }
     }
 
-    private String generateApplyNo() {
-        String datePrefix = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        LambdaQueryWrapper<ApplicationForm> wrapper = new LambdaQueryWrapper<>();
-        wrapper.likeRight(ApplicationForm::getApplyNo, "AP" + datePrefix)
-            .orderByDesc(ApplicationForm::getApplyNo)
-            .last("LIMIT 1");
-        ApplicationForm last = getOne(wrapper, false);
-        int seq = 1;
-        if (last != null && last.getApplyNo().length() >= 14) {
-            try {
-                seq = Integer.parseInt(last.getApplyNo().substring(12)) + 1;
-            } catch (NumberFormatException ignored) {
-            }
+    private void transition(ApplicationForm form, ApplicationStatus expected, ApplicationStatus target,
+                            String opinion, Long auditorId, String auditorName) {
+        int version = form.getVersion() == null ? 0 : form.getVersion();
+        LocalDateTime now = LocalDateTime.now();
+        boolean updated = update(new LambdaUpdateWrapper<ApplicationForm>()
+                .eq(ApplicationForm::getId, form.getId())
+                .eq(ApplicationForm::getStatus, expected.name())
+                .eq(ApplicationForm::getVersion, version)
+                .set(ApplicationForm::getStatus, target.name())
+                .set(ApplicationForm::getRemark, opinion)
+                .set(ApplicationForm::getHandlerId, auditorId)
+                .set(ApplicationForm::getHandlerName, auditorName)
+                .set(ApplicationForm::getUpdateTime, now)
+                .set(ApplicationForm::getVersion, version + 1));
+        if (!updated) {
+            throw new BusinessException(409, "申请状态已变化，请刷新后重试");
         }
-        return String.format("AP%s%04d", datePrefix, seq);
+        form.setStatus(target.name());
+        form.setRemark(opinion);
+        form.setHandlerId(auditorId);
+        form.setHandlerName(auditorName);
+        form.setUpdateTime(now);
+        form.setVersion(version + 1);
+    }
+
+    private String generateApplyNo(Long id) {
+        String datePrefix = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        return String.format("AP%s%08d", datePrefix, id);
     }
 }

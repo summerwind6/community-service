@@ -2,7 +2,7 @@
 
 ## 项目信息
 - **项目名称**: 社区便民服务申请与进度管理系统（政企简化版）
-- **默认账号**: `admin` / `admin123`
+- **初始账号**: 初始化脚本中的演示账号仅限本地开发；部署前必须创建并启用独立管理员账号
 - **后端地址**: http://localhost:8080/api
 - **前端地址**: http://localhost:3000
 - **进度查询（免登录）**: http://localhost:3000/progress
@@ -42,11 +42,14 @@ CREATE DATABASE community_service DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_
 mysql -u root -p community_service < sql/init.sql
 ```
 
+初始化后，复制并修改 `sql/create_admin.example.sql`，创建自己的强密码管理员；不要启用或复用公开演示凭据。已有数据库则先执行 `sql/upgrade_20260809_security_and_warning.sql`。
+
 ---
 
 ## 第三步：启动后端
 
-1. 修改 `backend/src/main/resources/application.yml` 中的数据库用户名密码
+1. 复制 `backend/src/main/resources/application-local.example.yml` 为 `application-local.yml`，填写本地数据库密码和 JWT secret（该文件已被 Git 忽略）
+2. 或设置环境变量：`DB_URL`、`DB_USERNAME`、`DB_PASSWORD`、`JWT_SECRET`（生产环境还需 `REDIS_HOST`）
 2. IDEA 运行 `CommunityApplication.java`，或：
 ```bash
 cd backend
@@ -128,8 +131,8 @@ npm run dev
 | GET | `/apply/progress` | 无 | 手机号进度查询 |
 | GET | `/apply/{id}` | 无 | 申请详情 |
 | GET | `/apply/{id}/audit-records` | 无 | 审核记录 |
-| POST | `/apply/{id}/review` | apply:audit | 初审 |
-| POST | `/apply/{id}/approve` | apply:audit | 复审 |
+| POST | `/apply/{id}/review` | apply:review | 初审 |
+| POST | `/apply/{id}/approve` | apply:approve | 复审 |
 
 ### 数据统计 `/stat`
 | 方法 | 路径 | 权限 | 说明 |
@@ -146,7 +149,7 @@ npm run dev
 
 **跨域错误**：确认 Vite 代理配置 `frontend/vite.config.js` 中 `/api` 指向 `http://localhost:8080`。
 
-**登录失败**：确认数据库中 admin 密码正确（默认 `admin123` 的 MD5+盐值）。
+**登录失败**：确认部署环境已配置独立管理员账号和安全的 JWT secret；不要使用公开文档中的演示凭据。
 
 **前端依赖安装慢**：
 ```bash

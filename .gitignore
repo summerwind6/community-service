@@ -22,6 +22,8 @@ Thumbs.db
 # Env
 *.env
 *.local
+backend/src/main/resources/application-local.yml
+backend/uploads/
 
 # Build
 build/

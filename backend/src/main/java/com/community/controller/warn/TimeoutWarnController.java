@@ -35,7 +35,7 @@ public class TimeoutWarnController {
     }
 
     @Operation(summary = "催办超时申请")
-    @RequiresPermissions("apply:audit")
+    @RequiresPermissions("apply:review")
     @PutMapping("/{id}/urge")
     public Result<Void> urge(@PathVariable Long id) {
         if (!ShiroUtils.hasRole("ADMIN")) {
@@ -47,5 +47,16 @@ public class TimeoutWarnController {
         }
         timeoutWarnService.urgeApplication(id, null, operatorName);
         return Result.success("催办成功", null);
+    }
+
+    @Operation(summary = "手动触发系统超时预警扫描")
+    @RequiresPermissions("apply:review")
+    @PostMapping("/system-scan")
+    public Result<Void> systemScan() {
+        if (!ShiroUtils.hasRole("ADMIN")) {
+            return Result.error(403, "只有管理员可触发系统预警扫描");
+        }
+        timeoutWarnService.createSystemWarnings();
+        return Result.success();
     }
 }

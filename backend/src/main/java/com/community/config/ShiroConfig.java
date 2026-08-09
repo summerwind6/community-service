@@ -6,11 +6,13 @@ import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Configuration
+@EnableAspectJAutoProxy(proxyTargetClass = true)
 public class ShiroConfig {
 
     @Bean
@@ -30,19 +32,23 @@ public class ShiroConfig {
         ShiroFilterFactoryBean shiroFilter = new ShiroFilterFactoryBean();
         shiroFilter.setSecurityManager(securityManager);
 
-        shiroFilter.setLoginUrl("/api/auth/unauthorized");
-        shiroFilter.setUnauthorizedUrl("/api/auth/unauthorized");
+        shiroFilter.setLoginUrl("/auth/unauthorized");
+        shiroFilter.setUnauthorizedUrl("/auth/unauthorized");
 
         Map<String, String> filterChainDefinitionMap = new LinkedHashMap<>();
-        filterChainDefinitionMap.put("/api/auth/login", "anon");
-        filterChainDefinitionMap.put("/api/evaluation/**", "anon");
-        filterChainDefinitionMap.put("/api/swagger-ui/**", "anon");
-        filterChainDefinitionMap.put("/api/v3/api-docs/**", "anon");
-        filterChainDefinitionMap.put("/api/upload/**", "anon");
-        // 免登录：预约新增、通知标记已读
-        filterChainDefinitionMap.put("/api/appointment/**", "anon");
-        filterChainDefinitionMap.put("/api/notification/*/read", "anon");
-        filterChainDefinitionMap.put("/api/**", "authc");
+        // Shiro matches paths below server.servlet.context-path (/api), so do not include /api here.
+        filterChainDefinitionMap.put("/auth/login", "anon");
+        filterChainDefinitionMap.put("/auth/unauthorized", "anon");
+        filterChainDefinitionMap.put("/apply/public", "anon");
+        filterChainDefinitionMap.put("/apply/progress", "anon");
+        filterChainDefinitionMap.put("/item/enabled", "anon");
+        filterChainDefinitionMap.put("/guide/public", "anon");
+        filterChainDefinitionMap.put("/upload/public", "anon");
+        filterChainDefinitionMap.put("/evaluation/public", "anon");
+        filterChainDefinitionMap.put("/actuator/health", "anon");
+        filterChainDefinitionMap.put("/swagger-ui/**", "anon");
+        filterChainDefinitionMap.put("/v3/api-docs/**", "anon");
+        filterChainDefinitionMap.put("/**", "authc");
 
         shiroFilter.setFilterChainDefinitionMap(filterChainDefinitionMap);
         return shiroFilter;

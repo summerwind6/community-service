@@ -13,7 +13,10 @@ spring:
       max-request-size: 50MB
 
   profiles:
-    active: prod
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
+  config:
+    import: optional:classpath:application-local.yml
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -36,7 +39,6 @@ mybatis-plus:
   type-aliases-package: com.community.entity.po
   configuration:
     map-underscore-to-camel-case: true
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   global-config:
     db-config:
       id-type: auto
@@ -64,5 +66,23 @@ springdoc:
     version: 1.0.0
 
 jwt:
-  secret: community-service-secret-key-2024
-  expiration: 86400000
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+app:
+  upload-dir: ${UPLOAD_DIR:uploads}
+  public:
+    progress-ip-limit-per-minute: ${PUBLIC_PROGRESS_IP_LIMIT:10}
+    apply-phone-limit-per-hour: ${PUBLIC_APPLY_PHONE_LIMIT:3}
+    apply-ip-limit-per-hour: ${PUBLIC_APPLY_IP_LIMIT:20}
+    upload-ip-limit-per-minute: ${PUBLIC_UPLOAD_IP_LIMIT:20}
+    evaluation-ip-limit-per-minute: ${PUBLIC_EVALUATION_IP_LIMIT:10}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never

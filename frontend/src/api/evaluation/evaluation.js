@@ -16,6 +16,14 @@ export function submitEvaluation(data) {
   })
 }
 
+export function submitPublicEvaluation(data) {
+  return request({
+    url: '/evaluation/public',
+    method: 'post',
+    data
+  })
+}
+
 export function getEvaluationStats() {
   return request({
     url: '/evaluation/stats',

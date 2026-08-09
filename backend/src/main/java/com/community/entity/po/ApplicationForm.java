@@ -55,6 +55,17 @@ public class ApplicationForm implements Serializable {
     @TableField("remark")
     private String remark;
 
+    /** Optimistic-lock version for approval transitions. */
+    @Version
+    @TableField("version")
+    private Integer version;
+
+    @TableField("last_warn_time")
+    private LocalDateTime lastWarnTime;
+
+    @TableField("warn_count")
+    private Integer warnCount;
+
     @TableField(exist = false)
     private Boolean evaluated;
 

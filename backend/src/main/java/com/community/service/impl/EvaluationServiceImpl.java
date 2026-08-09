@@ -11,6 +11,9 @@ import com.community.entity.vo.PageVO;
 import com.community.mapper.ApplicationFormMapper;
 import com.community.mapper.EvaluationMapper;
 import com.community.service.EvaluationService;
+import com.community.service.ResidentInfoService;
+import com.community.entity.dto.PublicEvaluationDTO;
+import com.community.entity.po.ResidentInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -27,6 +30,9 @@ public class EvaluationServiceImpl extends ServiceImpl<EvaluationMapper, Evaluat
 
     @Autowired
     private ApplicationFormMapper applicationFormMapper;
+
+    @Autowired
+    private ResidentInfoService residentInfoService;
 
     @Override
     public Evaluation submitEvaluation(Evaluation evaluation) {
@@ -56,6 +62,24 @@ public class EvaluationServiceImpl extends ServiceImpl<EvaluationMapper, Evaluat
         }
         fillApplicationInfo(evaluation);
         return evaluation;
+    }
+
+    @Override
+    public Evaluation submitPublicEvaluation(PublicEvaluationDTO dto) {
+        ApplicationForm application = applicationFormMapper.selectOne(new LambdaQueryWrapper<ApplicationForm>()
+                .eq(ApplicationForm::getApplyNo, dto.getApplyNo()).last("LIMIT 1"));
+        if (application == null || application.getResidentId() == null) {
+            throw new BusinessException(404, "申请不存在或验证信息错误");
+        }
+        ResidentInfo resident = residentInfoService.getResidentById(application.getResidentId());
+        if (resident == null || resident.getPhone() == null || !resident.getPhone().endsWith(dto.getPhoneLast4())) {
+            throw new BusinessException(404, "申请不存在或验证信息错误");
+        }
+        Evaluation evaluation = new Evaluation();
+        evaluation.setApplicationId(application.getId());
+        evaluation.setScore(dto.getScore());
+        evaluation.setContent(dto.getContent());
+        return submitEvaluation(evaluation);
     }
 
     @Override

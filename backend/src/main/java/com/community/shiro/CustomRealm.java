@@ -42,10 +42,8 @@ public class CustomRealm extends AuthorizingRealm {
         UsernamePasswordToken token = (UsernamePasswordToken) authenticationToken;
         String username = token.getUsername();
 
-        System.out.println("[DEBUG] CustomRealm.doGetAuthenticationInfo called, username=" + username);
         SysUser user = sysUserService.getUserByUsername(username);
         if (user == null) {
-            System.out.println("[DEBUG] CustomRealm: user NOT FOUND in DB");
             throw new UnknownAccountException("用户不存在");
         }
 
@@ -53,7 +51,6 @@ public class CustomRealm extends AuthorizingRealm {
             throw new LockedAccountException("账号已被禁用");
         }
 
-        System.out.println("[DEBUG] CustomRealm: returning stored password=" + user.getPassword());
         return new SimpleAuthenticationInfo(
                 username,
                 user.getPassword(),

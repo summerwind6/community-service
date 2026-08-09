@@ -133,7 +133,7 @@ async function handleSubmit() {
       const res = await submitApply(form)
       const applyId = res.data?.id
       if (applyId) {
-        await reviewApply(applyId, { result: 'APPROVED', opinion: '社区受理员受理' })
+        await reviewApply(applyId, { result: 'PROCESSING', opinion: '社区受理员受理' })
       }
       ElMessage.success('申请已受理，已流转至街道审核')
       visible.value = false

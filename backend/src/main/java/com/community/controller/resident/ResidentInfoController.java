@@ -10,6 +10,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import com.community.util.DataMaskingUtils;
+import com.community.util.ShiroUtils;
 
 @Tag(name = "居民信息管理", description = "社区居民基础信息CRUD操作")
 @RestController
@@ -23,14 +25,22 @@ public class ResidentInfoController {
     @RequiresPermissions("resident:list")
     @GetMapping("/list")
     public Result<PageVO<ResidentInfo>> list(PageDTO pageDTO) {
-        return Result.success(residentInfoService.getResidentList(pageDTO));
+        PageVO<ResidentInfo> page = residentInfoService.getResidentList(pageDTO);
+        if (!ShiroUtils.hasRole("ADMIN")) {
+            page.getRecords().forEach(this::mask);
+        }
+        return Result.success(page);
     }
 
     @Operation(summary = "获取居民详情")
     @RequiresPermissions("resident:detail")
     @GetMapping("/{id}")
     public Result<ResidentInfo> detail(@PathVariable Long id) {
-        return Result.success(residentInfoService.getResidentById(id));
+        ResidentInfo resident = residentInfoService.getResidentById(id);
+        if (!ShiroUtils.hasRole("ADMIN")) {
+            mask(resident);
+        }
+        return Result.success(resident);
     }
 
     @Operation(summary = "新增居民")
@@ -59,6 +69,18 @@ public class ResidentInfoController {
     @RequiresPermissions("resident:detail")
     @GetMapping("/by-phone")
     public Result<ResidentInfo> getByPhone(@RequestParam String phone) {
-        return Result.success(residentInfoService.getResidentByPhone(phone));
+        ResidentInfo resident = residentInfoService.getResidentByPhone(phone);
+        if (!ShiroUtils.hasRole("ADMIN")) {
+            mask(resident);
+        }
+        return Result.success(resident);
+    }
+
+    private void mask(ResidentInfo resident) {
+        if (resident == null) {
+            return;
+        }
+        resident.setPhone(DataMaskingUtils.phone(resident.getPhone()));
+        resident.setIdCard(DataMaskingUtils.idCard(resident.getIdCard()));
     }
 }

@@ -93,10 +93,10 @@
         <el-timeline-item
           v-for="r in auditRecords" :key="r.id"
           :timestamp="r.auditTime"
-          :color="r.auditResult === 'APPROVED' ? '#67C23A' : '#F56C6C'"
+          :color="r.auditResult !== 'REJECTED' ? '#67C23A' : '#F56C6C'"
         >
           <p><strong>{{ r.auditorName }}</strong>（{{ r.auditType === 'COMMUNITY' ? '社区初审' : '街道复审' }}）</p>
-          <p>结果：{{ r.auditResult === 'APPROVED' ? '通过' : '驳回' }}</p>
+          <p>结果：{{ r.auditResult !== 'REJECTED' ? '通过' : '驳回' }}</p>
           <p v-if="r.auditOpinion">意见：{{ r.auditOpinion }}</p>
         </el-timeline-item>
       </el-timeline>
@@ -113,7 +113,7 @@
       <el-form :model="auditForm" label-width="70px">
         <el-form-item label="审核结果">
           <el-radio-group v-model="auditForm.result">
-            <el-radio value="APPROVED">{{ auditMode === 'review' ? '通过，进入复审' : '通过，完成办结' }}</el-radio>
+            <el-radio :value="auditMode === 'review' ? 'PROCESSING' : 'COMPLETED'">{{ auditMode === 'review' ? '通过，进入复审' : '通过，完成办结' }}</el-radio>
             <el-radio value="REJECTED">驳回</el-radio>
           </el-radio-group>
         </el-form-item>
@@ -165,7 +165,7 @@ const auditVisible = ref(false)
 const auditMode = ref('review')
 const auditTargetId = ref(null)
 const submitLoading = ref(false)
-const auditForm = reactive({ result: 'APPROVED', opinion: '' })
+const auditForm = reactive({ result: 'PROCESSING', opinion: '' })
 
 async function loadData() {
   loading.value = true
@@ -202,7 +202,7 @@ async function openDetail(row) {
 function openAudit(row, mode) {
   auditTargetId.value = row.id
   auditMode.value = mode
-  auditForm.result = 'APPROVED'
+  auditForm.result = mode === 'review' ? 'PROCESSING' : 'COMPLETED'
   auditForm.opinion = ''
   auditVisible.value = true
 }

@@ -5,6 +5,8 @@ import com.community.entity.vo.AttachmentVO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -37,7 +39,8 @@ public class FileUtils {
         if (file.getSize() > MAX_FILE_SIZE) {
             throw new BusinessException("文件大小不能超过10MB");
         }
-        Path dir = Paths.get(uploadDir);
+        assertTrustedContent(file, ext);
+        Path dir = Paths.get(uploadDir).toAbsolutePath().normalize();
         if (!Files.exists(dir)) {
             Files.createDirectories(dir);
         }
@@ -45,6 +48,36 @@ public class FileUtils {
         Path target = dir.resolve(savedName);
         Files.copy(file.getInputStream(), target);
         return "/upload/" + savedName;
+    }
+
+    public static boolean isSafeStoredName(String filename) {
+        return filename != null && filename.matches("^[a-f0-9]{32}\\.[a-zA-Z0-9]{1,10}$");
+    }
+
+    private static void assertTrustedContent(MultipartFile file, String ext) throws IOException {
+        try (InputStream input = file.getInputStream()) {
+            byte[] header = input.readNBytes(8);
+            boolean isPdf = header.length >= 4 && new String(header, 0, 4, StandardCharsets.US_ASCII).equals("%PDF");
+            boolean isZip = header.length >= 2 && header[0] == 'P' && header[1] == 'K';
+            boolean isOle = header.length >= 8 && header[0] == (byte) 0xD0 && header[1] == (byte) 0xCF
+                    && header[2] == 0x11 && header[3] == (byte) 0xE0;
+            if ("pdf".equals(ext) && !isPdf) {
+                throw new BusinessException("文件内容与扩展名不匹配");
+            }
+            if (List.of("docx", "xlsx", "pptx").contains(ext) && !isZip) {
+                throw new BusinessException("文件内容与扩展名不匹配");
+            }
+            if (List.of("doc", "xls", "ppt").contains(ext) && !isOle) {
+                throw new BusinessException("文件内容与扩展名不匹配");
+            }
+            if (IMAGE_SUFFIX.contains(ext)) {
+                try (InputStream imageInput = file.getInputStream()) {
+                    if (javax.imageio.ImageIO.read(imageInput) == null) {
+                        throw new BusinessException("图片文件无效");
+                    }
+                }
+            }
+        }
     }
 
     public static List<AttachmentVO> parseAttachments(String attachmentsJson) {
