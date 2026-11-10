@@ -32,7 +32,6 @@ CREATE TABLE application_warning (
 UPDATE sys_permission SET perm_name = '申请初审', perm_code = 'apply:review' WHERE id = 26;
 INSERT INTO sys_permission (id, perm_name, perm_code, perm_type, parent_id, url, sort_order, status)
 VALUES (37, '申请复审', 'apply:approve', 'button', 14, NULL, 2, 1),
-       (38, '评价列表', 'evaluation:list', 'button', 21, NULL, 1, 1),
        (39, '指南维护', 'guide:manage', 'button', 10, NULL, 1, 1),
        (40, '预约管理', 'appointment:manage', 'button', 16, NULL, 1, 1),
        (41, '发送通知', 'notification:send', 'button', 17, NULL, 1, 1),
@@ -40,5 +39,9 @@ VALUES (37, '申请复审', 'apply:approve', 'button', 14, NULL, 2, 1),
 ON DUPLICATE KEY UPDATE perm_name = VALUES(perm_name), perm_code = VALUES(perm_code), status = VALUES(status);
 
 INSERT IGNORE INTO sys_role_perm (role_id, perm_id) VALUES
-    (1, 37), (1, 38), (1, 39), (1, 40), (1, 41), (1, 42),
-    (2, 26), (2, 38), (3, 37), (3, 38);
+    (1, 37), (1, 39), (1, 40), (1, 41), (1, 42),
+    (2, 26), (3, 37);
+
+INSERT IGNORE INTO sys_role_perm (role_id, perm_id)
+SELECT r.id, p.id FROM sys_role r CROSS JOIN sys_permission p
+WHERE r.id IN (1, 2, 3) AND p.perm_code = 'evaluation:list';

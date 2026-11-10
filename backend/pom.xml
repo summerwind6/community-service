@@ -5,15 +5,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.5</version>
-        <relativePath/>
+        <groupId>com.community</groupId>
+        <artifactId>community-platform</artifactId>
+        <version>1.0.0</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <groupId>com.community</groupId>
-    <artifactId>community-service-system</artifactId>
-    <version>1.0.0</version>
+    <artifactId>community-core</artifactId>
     <packaging>jar</packaging>
     <name>社区便民服务申请与进度管理系统</name>
     <description>社区便民服务申请与进度管理系统（政企简化版）</description>
@@ -22,13 +20,34 @@
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <shiro.version>2.0.6</shiro.version>
-        <mybatis-plus.version>3.5.7</mybatis-plus.version>
+
         <swagger.version>2.2.0</swagger.version>
         <mysql.version>8.0.33</mysql.version>
         <jwt.version>0.12.3</jwt.version>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>com.community</groupId>
+            <artifactId>community-shared</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+        </dependency>
         <!-- Spring Boot Web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

@@ -1,6 +1,8 @@
 package com.community.controller.evaluation;
 
 import com.community.common.Result;
+import com.community.config.ClientAddress;
+import com.community.config.PublicLimits;
 import com.community.entity.dto.PageDTO;
 import com.community.entity.po.Evaluation;
 import com.community.entity.vo.PageVO;
@@ -12,7 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.springframework.beans.factory.annotation.Value;
+
 import jakarta.validation.Valid;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -29,8 +31,11 @@ public class EvaluationController {
     @Autowired
     private PublicRateLimitService publicRateLimitService;
 
-    @Value("${app.public.evaluation-ip-limit-per-minute}")
-    private int evaluationIpLimit;
+    @Autowired
+    private ClientAddress clientAddress;
+
+    @Autowired
+    private PublicLimits publicLimits;
 
     @Operation(summary = "Evaluation list")
     @GetMapping("/list")
@@ -51,7 +56,7 @@ public class EvaluationController {
     @PostMapping("/public")
     public Result<Evaluation> submitPublic(@Valid @RequestBody PublicEvaluationDTO evaluation,
                                            HttpServletRequest request) {
-        publicRateLimitService.check("public-evaluation-ip", clientIp(request), evaluationIpLimit, 60);
+        publicRateLimitService.check("public-evaluation-ip", clientAddress.resolve(request), publicLimits.evaluationIpLimit(), 60);
         return Result.success(evaluationService.submitPublicEvaluation(evaluation));
     }
 
@@ -62,8 +67,4 @@ public class EvaluationController {
         return Result.success(evaluationService.getEvaluationStats());
     }
 
-    private String clientIp(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        return forwarded == null || forwarded.isBlank() ? request.getRemoteAddr() : forwarded.split(",")[0].trim();
-    }
 }

@@ -1,6 +1,8 @@
 package com.community.controller.apply;
 
 import com.community.common.Result;
+import com.community.config.ClientAddress;
+import com.community.config.PublicLimits;
 import com.community.entity.dto.PageDTO;
 import com.community.entity.dto.AuditRequestDTO;
 import com.community.entity.dto.PublicProgressQueryDTO;
@@ -19,7 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Value;
+
 import jakarta.servlet.http.HttpServletRequest;
 import com.community.service.PublicRateLimitService;
 
@@ -44,8 +46,11 @@ public class ApplyController {
     @Autowired
     private ApplicationAccessService applicationAccessService;
 
-    @Value("${app.public.progress-ip-limit-per-minute}")
-    private int progressIpLimit;
+    @Autowired
+    private ClientAddress clientAddress;
+
+    @Autowired
+    private PublicLimits publicLimits;
 
     /** 禁止 status 绑定到 PageDTO（PageDTO.status 是 Integer，申请状态是 String） */
     @InitBinder
@@ -62,7 +67,7 @@ public class ApplyController {
     @Operation(summary = "手机号查询申请进度")
     @GetMapping("/progress")
     public Result<Object> progress(@Valid PublicProgressQueryDTO query, HttpServletRequest request) {
-        publicRateLimitService.check("public-progress-ip", clientIp(request), progressIpLimit, 60);
+        publicRateLimitService.check("public-progress-ip", clientAddress.resolve(request), publicLimits.progressIpLimit(), 60);
         return Result.success(applicationFormService.getPublicProgress(query.getApplyNo(), query.getPhoneLast4()));
     }
 
@@ -134,8 +139,4 @@ public class ApplyController {
         return sysUserService.getUserInfoByUsername(username);
     }
 
-    private String clientIp(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        return forwarded == null || forwarded.isBlank() ? request.getRemoteAddr() : forwarded.split(",")[0].trim();
-    }
 }

@@ -22,7 +22,7 @@ public class RequestTraceFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         String traceId = request.getHeader("X-Trace-Id");
-        if (traceId == null || traceId.isBlank() || traceId.length() > 64) {
+        if (traceId == null || !traceId.matches("[a-zA-Z0-9._-]{1,64}")) {
             traceId = UUID.randomUUID().toString().replace("-", "");
         }
         long startedAt = System.currentTimeMillis();

@@ -72,6 +72,10 @@ request.interceptors.response.use(
         case 404:
           message = '请求的资源不存在'
           break
+        case 429:
+        case 503:
+          message = error.response.data?.msg || '服务繁忙，请稍后重试'
+          break
         case 500:
           message = '服务器内部错误'
           break

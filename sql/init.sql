@@ -240,6 +240,7 @@ CREATE TABLE `appointment` (
 -- =====================================================
 -- 13. 消息通知表 (notification)
 -- =====================================================
+DROP TABLE IF EXISTS application_event_outbox;
 DROP TABLE IF EXISTS `notification`;
 CREATE TABLE `notification` (
     `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
@@ -249,12 +250,33 @@ CREATE TABLE `notification` (
     `target_id` BIGINT DEFAULT NULL COMMENT '关联目标ID（如申请单ID）',
     `target_name` VARCHAR(50) DEFAULT NULL COMMENT '接收人姓名',
     `target_phone` VARCHAR(20) DEFAULT NULL COMMENT '接收人电话',
+    source_event_id VARCHAR(64) DEFAULT NULL,
     `is_read` TINYINT DEFAULT 0 COMMENT '是否已读：0未读/1已读',
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     PRIMARY KEY (`id`),
+    UNIQUE KEY uk_notification_source_event (source_event_id),
     KEY `idx_is_read` (`is_read`),
     KEY `idx_type` (`type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='消息通知表';
+
+-- =====================================================
+CREATE TABLE IF NOT EXISTS application_event_outbox (
+    event_id VARCHAR(64) NOT NULL,
+    event_type VARCHAR(40) NOT NULL,
+    audit_record_id BIGINT NOT NULL,
+    application_id BIGINT NOT NULL,
+    payload JSON NOT NULL,
+    status VARCHAR(16) NOT NULL DEFAULT 'PENDING',
+    attempts INT NOT NULL DEFAULT 0,
+    next_attempt_at DATETIME(6) NOT NULL COMMENT '重试时间；SENDING 时为租约到期时间（UTC）',
+    lease_owner VARCHAR(36) DEFAULT NULL,
+    created_at DATETIME(6) NOT NULL,
+    sent_at DATETIME(6) DEFAULT NULL,
+    last_error VARCHAR(120) DEFAULT NULL,
+    PRIMARY KEY (event_id),
+    UNIQUE KEY uk_outbox_audit_type (event_type, audit_record_id),
+    KEY idx_outbox_due (status, next_attempt_at, event_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- =====================================================
 -- 14. 服务评价表 (evaluation)
@@ -353,7 +375,6 @@ INSERT INTO `sys_permission` (`id`, `perm_name`, `perm_code`, `perm_type`, `pare
     (35, '趋势分析',     'stat:trend',       'button', 19, NULL, 1, 1),
     (36, '分布统计',     'stat:distribution','button', 19, NULL, 2, 1),
     (37, '申请复审',     'apply:approve',    'button', 14, NULL, 2, 1),
-    (38, '评价列表',     'evaluation:list',  'button', 21, NULL, 1, 1),
     (39, '指南维护',     'guide:manage',     'button', 10, NULL, 1, 1),
     (40, '预约管理',     'appointment:manage','button', 16, NULL, 1, 1),
     (41, '发送通知',     'notification:send','button', 17, NULL, 1, 1),
@@ -389,12 +410,10 @@ INSERT INTO `sys_role_perm` (`role_id`, `perm_id`) VALUES
     (3, 14),  -- 申请列表
     (3, 15),  -- 超时预警
     (3, 19),  -- 数据分析
+    (3, 21),  -- 评价列表
     (3, 37);  -- 申请复审
 
-INSERT INTO `sys_role_perm` (`role_id`, `perm_id`) VALUES
-    (2, 26),
-    (2, 38),
-    (3, 38);
+INSERT INTO `sys_role_perm` (`role_id`, `perm_id`) VALUES (2, 26);
 
 -- -----------------------------------------------------
 -- 管理员账号

@@ -19,5 +19,7 @@ public interface ServiceItemService extends IService<ServiceItem> {
 
     void updateItemStatus(Long id, Integer status);
 
+    void removeItem(Long id);
+
     List<ServiceItem> getEnabledItems();
 }

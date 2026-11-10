@@ -8,6 +8,8 @@ import org.apache.shiro.authz.UnauthorizedException;
 import org.apache.shiro.session.ExpiredSessionException;
 import org.apache.shiro.session.UnknownSessionException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.dao.QueryTimeoutException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -24,7 +26,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<Result<String>> handleBusinessException(BusinessException e) {
         log.error("业务异常：{}", e.getMessage());
-        return ResponseEntity.status(e.getCode() == 429 ? 429 : 200)
+        return ResponseEntity.status(e.getCode() == 429 || e.getCode() == 503 ? e.getCode() : 200)
                 .body(Result.error(e.getCode(), e.getMessage()));
     }
 
@@ -98,6 +100,12 @@ public class GlobalExceptionHandler {
     public Result<String> handleExpiredSessionException(ExpiredSessionException e) {
         log.warn("会话异常-会话已过期：{}", e.getMessage());
         return Result.error(401, "会话已过期，请重新登录");
+    }
+
+    @ExceptionHandler({RedisConnectionFailureException.class, QueryTimeoutException.class})
+    public ResponseEntity<Result<String>> handleDependencyUnavailable(Exception e) {
+        log.warn("Service dependency unavailable ({})", e.getClass().getSimpleName());
+        return ResponseEntity.status(503).body(Result.error(503, "服务暂不可用，请稍后重试"));
     }
 
     // ==================== 兜底异常 ====================

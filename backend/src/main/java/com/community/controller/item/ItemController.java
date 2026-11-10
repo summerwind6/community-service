@@ -66,7 +66,7 @@ public class ItemController {
     @RequiresPermissions("item:delete")
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
-        serviceItemService.removeById(id);
+        serviceItemService.removeItem(id);
         return Result.success();
     }
 }

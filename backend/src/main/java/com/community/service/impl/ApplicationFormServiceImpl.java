@@ -4,11 +4,13 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.community.audit.AuditNotifications;
+import com.community.audit.AuditOutbox;
 import com.community.common.BusinessException;
 import com.community.entity.dto.PageDTO;
 import com.community.entity.po.ApplicationForm;
 import com.community.entity.po.AuditRecord;
-import com.community.entity.po.Notification;
+
 import com.community.entity.po.ResidentInfo;
 import com.community.entity.po.ServiceItem;
 import com.community.entity.enums.ApplicationStatus;
@@ -17,13 +19,14 @@ import com.community.entity.vo.PublicProgressVO;
 import com.community.mapper.ApplicationFormMapper;
 import com.community.service.ApplicationFormService;
 import com.community.service.AuditRecordService;
-import com.community.service.NotificationService;
+
 import com.community.service.ResidentInfoService;
 import com.community.service.ServiceItemService;
 import com.community.service.EvaluationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,7 +51,13 @@ public class ApplicationFormServiceImpl extends ServiceImpl<ApplicationFormMappe
     private ServiceItemService serviceItemService;
 
     @Autowired
-    private NotificationService notificationService;
+    private AuditOutbox auditOutbox;
+
+    @Autowired
+    private AuditNotifications auditNotifications;
+
+    @Value("${app.audit.outbox-enabled:true}")
+    private boolean auditOutboxEnabled;
 
     @Autowired
     private EvaluationService evaluationService;
@@ -134,8 +143,7 @@ public class ApplicationFormServiceImpl extends ServiceImpl<ApplicationFormMappe
         record.setAuditTime(LocalDateTime.now());
         record.setCreateTime(LocalDateTime.now());
         auditRecordService.createAuditRecord(record);
-        // 审核后自动发送通知给居民
-        sendAuditNotification(form, target.name(), opinion);
+        recordAuditNotification(form, record);
     }
 
     @Override
@@ -161,8 +169,7 @@ public class ApplicationFormServiceImpl extends ServiceImpl<ApplicationFormMappe
         record.setAuditTime(LocalDateTime.now());
         record.setCreateTime(LocalDateTime.now());
         auditRecordService.createAuditRecord(record);
-        // 审核后自动发送通知给居民
-        sendAuditNotification(form, target.name(), opinion);
+        recordAuditNotification(form, record);
     }
 
     @Override
@@ -224,29 +231,15 @@ public class ApplicationFormServiceImpl extends ServiceImpl<ApplicationFormMappe
         }
     }
 
-    /** 审核后向居民发送通知 */
-    private void sendAuditNotification(ApplicationForm form, String result, String opinion) {
+    private void recordAuditNotification(ApplicationForm form, AuditRecord record) {
+        if (auditOutboxEnabled) {
+            auditOutbox.append(form, record);
+            return;
+        }
         try {
-            String residentPhone = "";
-            if (form.getResidentId() != null) {
-                ResidentInfo resident = residentInfoService.getResidentById(form.getResidentId());
-                if (resident != null) {
-                    residentPhone = resident.getPhone();
-                }
-            }
-            String action = "REJECTED".equals(result) ? "已被驳回" : "已通过";
-            Notification notification = new Notification();
-            notification.setTitle("您的申请" + form.getApplyNo() + action);
-            notification.setContent(opinion != null && !opinion.isEmpty() ? opinion : "您的便民服务申请" + form.getApplyNo() + action + "，请知悉。");
-            notification.setType("AUDIT");
-            notification.setTargetId(form.getId());
-            notification.setTargetName(form.getResidentName());
-            notification.setTargetPhone(residentPhone);
-            notification.setIsRead(0);
-            notification.setCreateTime(LocalDateTime.now());
-            notificationService.sendNotification(notification);
+            auditNotifications.sendSynchronously(form, record);
         } catch (Exception e) {
-            log.warn("审核通知发送失败, applyId={}, applyNo={}: {}", form.getId(), form.getApplyNo(), e.getMessage());
+            log.warn("审核通知发送失败, applyId={}: {}", form.getId(), e.getClass().getSimpleName());
         }
     }
 

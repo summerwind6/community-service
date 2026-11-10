@@ -1,0 +1,60 @@
+server:
+  port: ${SERVER_PORT:8080}
+  forward-headers-strategy: none
+
+spring:
+  application:
+    name: community-gateway
+  config:
+    import: optional:nacos:community-gateway.yaml?refreshEnabled=true
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_ADDR:localhost:8848}
+        namespace: ${NACOS_NAMESPACE:}
+      config:
+        server-addr: ${NACOS_ADDR:localhost:8848}
+        namespace: ${NACOS_NAMESPACE:}
+    loadbalancer:
+      cache:
+        enabled: false
+      retry:
+        enabled: false
+    gateway:
+      forwarded:
+        enabled: false
+      x-forwarded:
+        enabled: false
+      httpclient:
+        connect-timeout: 2000
+        response-timeout: 12s
+      routes:
+        - id: guide-public
+          order: -1
+          uri: lb://community-guide
+          predicates:
+            - Path=/api/guide/public
+            - Method=GET,HEAD
+          filters:
+            - RemoveRequestHeader=X-Community-Gateway-Token
+            - RemoveRequestHeader=X-Community-Client-IP
+        - id: core-api
+          uri: lb://community-core
+          predicates:
+            - Path=/api/auth/**,/api/user/**,/api/role/**,/api/resident/**,/api/item/**,/api/apply/**,/api/guide/**,/api/upload/**,/api/warn/**,/api/report/**,/api/stat/**,/api/evaluation/**,/api/appointment/**,/api/config/**,/api/session/**,/api/notification/**
+  web:
+    resources:
+      add-mappings: false
+
+management:
+  server:
+    port: 9090
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+app:
+  gateway:
+    token: ${GATEWAY_TOKEN}
+    trusted-proxies: ${GATEWAY_TRUSTED_PROXIES:}

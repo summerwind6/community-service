@@ -10,10 +10,20 @@ import com.community.mapper.GuideMapper;
 import com.community.service.GuideService;
 import org.springframework.stereotype.Service;
 
+import com.community.cache.PublicListCache;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
 @Service
 public class GuideServiceImpl extends ServiceImpl<GuideMapper, Guide> implements GuideService {
+
+    private static final String CACHE_KEY = "cache:guide:public:v1";
+    private final PublicListCache cache;
+
+    public GuideServiceImpl(PublicListCache cache) {
+        this.cache = cache;
+    }
 
     @Override
     public PageVO<Guide> getGuideList(PageDTO pageDTO, String category) {
@@ -35,9 +45,11 @@ public class GuideServiceImpl extends ServiceImpl<GuideMapper, Guide> implements
 
     @Override
     public List<Guide> getPublicGuides() {
-        LambdaQueryWrapper<Guide> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Guide::getStatus, 1).orderByDesc(Guide::getCreateTime);
-        return list(wrapper);
+        return cache.read(CACHE_KEY, Guide.class, () -> {
+            LambdaQueryWrapper<Guide> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(Guide::getStatus, 1).orderByDesc(Guide::getCreateTime);
+            return list(wrapper);
+        });
     }
 
     @Override
@@ -46,19 +58,25 @@ public class GuideServiceImpl extends ServiceImpl<GuideMapper, Guide> implements
     }
 
     @Override
+    @Transactional
     public Guide addGuide(Guide guide) {
         save(guide);
+        cache.invalidateAfterCommit(CACHE_KEY);
         return guide;
     }
 
     @Override
+    @Transactional
     public Guide updateGuide(Guide guide) {
         updateById(guide);
+        cache.invalidateAfterCommit(CACHE_KEY);
         return guide;
     }
 
     @Override
+    @Transactional
     public void removeGuide(Long id) {
         removeById(id);
+        cache.invalidateAfterCommit(CACHE_KEY);
     }
 }

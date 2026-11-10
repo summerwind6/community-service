@@ -1,0 +1,9 @@
+app:
+  cache:
+    ttl-seconds: 300
+  public:
+    progress-ip-limit-per-minute: 10
+    apply-phone-limit-per-hour: 3
+    apply-ip-limit-per-hour: 20
+    upload-ip-limit-per-minute: 20
+    evaluation-ip-limit-per-minute: 10

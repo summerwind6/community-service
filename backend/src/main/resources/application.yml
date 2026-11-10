@@ -1,11 +1,12 @@
 server:
-  port: 8080
+  port: ${SERVER_PORT:8081}
+  forward-headers-strategy: none
   servlet:
     context-path: /api
 
 spring:
   application:
-    name: community-service-system
+    name: community-core
 
   servlet:
     multipart:
@@ -16,7 +17,28 @@ spring:
     active: ${SPRING_PROFILES_ACTIVE:dev}
 
   config:
-    import: optional:classpath:application-local.yml
+    import:
+      - optional:classpath:application-local.yml
+      - optional:nacos:community-core.yaml?refreshEnabled=true
+
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_ADDR:localhost:8848}
+        namespace: ${NACOS_NAMESPACE:}
+      config:
+        server-addr: ${NACOS_ADDR:localhost:8848}
+        namespace: ${NACOS_NAMESPACE:}
+    loadbalancer:
+      cache:
+        enabled: false
+      retry:
+        enabled: false
+
+  task:
+    scheduling:
+      pool:
+        size: 3
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -24,11 +46,39 @@ spring:
   data:
     redis:
       database: 0
+      connect-timeout: 200ms
+      timeout: 200ms
 
   session:
     redis:
       namespace: spring:session
       flush-mode: on_save
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    admin:
+      operation-timeout: 5s
+      properties:
+        "[request.timeout.ms]": 3000
+        "[default.api.timeout.ms]": 5000
+    producer:
+      acks: all
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      properties:
+        "[enable.idempotence]": true
+        "[max.block.ms]": 2000
+        "[request.timeout.ms]": 3000
+        "[delivery.timeout.ms]": 5000
+    consumer:
+      enable-auto-commit: false
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      properties:
+        "[allow.auto.create.topics]": false
+    listener:
+      ack-mode: record
 
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
@@ -70,6 +120,13 @@ jwt:
   expiration: ${JWT_EXPIRATION:86400000}
 
 app:
+  audit:
+    outbox-enabled: ${AUDIT_OUTBOX_ENABLED:true}
+    processing-enabled: ${AUDIT_PROCESSING_ENABLED:true}
+  gateway:
+    token: ${GATEWAY_TOKEN:}
+  guide:
+    token: ${GUIDE_SERVICE_TOKEN:}
   upload-dir: ${UPLOAD_DIR:uploads}
   public:
     progress-ip-limit-per-minute: ${PUBLIC_PROGRESS_IP_LIMIT:10}
@@ -82,7 +139,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,metrics
   endpoint:
     health:
       show-details: never

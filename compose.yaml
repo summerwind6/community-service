@@ -1,0 +1,221 @@
+name: community-service
+
+x-nacos-client: &nacos-client
+  NACOS_ADDR: nacos:8848
+  NACOS_NAMESPACE: community-demo
+  TZ: Asia/Shanghai
+
+x-db-client: &db-client
+  DB_URL: jdbc:mysql://mysql:3306/community_service?serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+  REDIS_HOST: redis
+  REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env}
+
+x-guide: &guide
+  image: community-guide:1.0.0
+  build:
+    context: .
+    args:
+      MODULE: community-guide
+      APP: community-guide
+  environment:
+    <<: [*nacos-client, *db-client]
+    GUIDE_REQUEST_LOG_LEVEL: DEBUG
+    GUIDE_DB_PASSWORD: ${GUIDE_DB_PASSWORD:?Set GUIDE_DB_PASSWORD in .env}
+    GUIDE_SERVICE_TOKEN: ${GUIDE_SERVICE_TOKEN:?Set GUIDE_SERVICE_TOKEN in .env}
+  depends_on:
+    mysql:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+    nacos-init:
+      condition: service_completed_successfully
+  networks: [services]
+  healthcheck:
+    test: [CMD, bash, /app/healthcheck.sh, '8082', /api/actuator/health]
+    interval: 10s
+    timeout: 3s
+    retries: 8
+    start_period: 30s
+
+services:
+  mysql:
+    image: mysql:8.0.43
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
+      CORE_DB_PASSWORD: ${CORE_DB_PASSWORD:?Set CORE_DB_PASSWORD in .env}
+      GUIDE_DB_PASSWORD: ${GUIDE_DB_PASSWORD:?Set GUIDE_DB_PASSWORD in .env}
+      TZ: Asia/Shanghai
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - ./deploy/mysql-users.sh:/docker-entrypoint-initdb.d/02-users.sh:ro
+    networks: [services]
+    healthcheck:
+      test: [CMD, mysqladmin, ping, -h, '127.0.0.1', --silent]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7.2.10-alpine
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env}
+    command: [sh, -ec, 'exec redis-server --appendonly yes --requirepass "$$REDIS_PASSWORD"']
+    volumes:
+      - redis-data:/data
+    networks: [services]
+    healthcheck:
+      test: [CMD-SHELL, 'REDISCLI_AUTH="$$REDIS_PASSWORD" redis-cli ping | grep -qx PONG']
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  nacos:
+    image: nacos/nacos-server:v2.3.2
+    environment:
+      MODE: standalone
+      NACOS_AUTH_ENABLE: 'false'
+      JVM_XMS: 256m
+      JVM_XMX: 512m
+    volumes:
+      - nacos-data:/home/nacos/data
+    networks: [services]
+    healthcheck:
+      test: [CMD, curl, -fsS, 'http://127.0.0.1:8848/nacos/v1/console/health/readiness']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 30s
+
+  nacos-init:
+    image: curlimages/curl:8.12.1
+    entrypoint: [sh, /nacos-seed.sh]
+    depends_on:
+      nacos:
+        condition: service_healthy
+    volumes:
+      - ./deploy/nacos-seed.sh:/nacos-seed.sh:ro
+      - ./deploy/nacos:/seed:ro
+    networks: [services]
+
+  kafka:
+    image: apache/kafka:3.7.2
+    environment:
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    networks: [services]
+    healthcheck:
+      test: [CMD, /opt/kafka/bin/kafka-topics.sh, --bootstrap-server, 'localhost:9092', --list]
+      interval: 10s
+      timeout: 8s
+      retries: 12
+      start_period: 20s
+
+  core:
+    image: community-core:1.0.0
+    build:
+      context: .
+      args:
+        MODULE: backend
+        APP: community-core
+    environment:
+      <<: [*nacos-client, *db-client]
+      SPRING_PROFILES_ACTIVE: prod
+      DB_USERNAME: community_core
+      DB_PASSWORD: ${CORE_DB_PASSWORD:?Set CORE_DB_PASSWORD in .env}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      GATEWAY_TOKEN: ${GATEWAY_TOKEN:?Set GATEWAY_TOKEN in .env}
+      GUIDE_SERVICE_TOKEN: ${GUIDE_SERVICE_TOKEN:?Set GUIDE_SERVICE_TOKEN in .env}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      AUDIT_OUTBOX_ENABLED: ${AUDIT_OUTBOX_ENABLED:-true}
+      AUDIT_PROCESSING_ENABLED: ${AUDIT_PROCESSING_ENABLED:-true}
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      nacos-init:
+        condition: service_completed_successfully
+    networks: [services]
+    healthcheck:
+      test: [CMD, bash, /app/healthcheck.sh, '8081', /api/actuator/health]
+      interval: 10s
+      timeout: 3s
+      retries: 8
+      start_period: 35s
+
+  guide:
+    <<: *guide
+  guide-replica:
+    <<: *guide
+
+  gateway:
+    image: community-gateway:1.0.0
+    build:
+      context: .
+      args:
+        MODULE: community-gateway
+        APP: community-gateway
+    environment:
+      <<: *nacos-client
+      GATEWAY_TOKEN: ${GATEWAY_TOKEN:?Set GATEWAY_TOKEN in .env}
+      GATEWAY_TRUSTED_PROXIES: 172.30.251.10
+    ports:
+      - '127.0.0.1:${GATEWAY_PORT:-8080}:8080'
+    depends_on:
+      core:
+        condition: service_healthy
+      guide:
+        condition: service_healthy
+      guide-replica:
+        condition: service_healthy
+    networks: [services, edge]
+    healthcheck:
+      test: [CMD, bash, /app/healthcheck.sh, '9090', /actuator/health]
+      interval: 10s
+      timeout: 3s
+      retries: 8
+      start_period: 25s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - '127.0.0.1:${FRONTEND_PORT:-3000}:80'
+    depends_on:
+      gateway:
+        condition: service_healthy
+    networks:
+      edge:
+        ipv4_address: 172.30.251.10
+
+networks:
+  services:
+  edge:
+    ipam:
+      config:
+        - subnet: 172.30.251.0/24
+
+volumes:
+  mysql-data:
+  redis-data:
+  nacos-data:
+  kafka-data:
+  uploads:

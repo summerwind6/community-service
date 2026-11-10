@@ -2,6 +2,8 @@ package com.community.controller.apply;
 
 import com.community.common.BusinessException;
 import com.community.common.Result;
+import com.community.config.ClientAddress;
+import com.community.config.PublicLimits;
 import com.community.dto.PublicApplyDTO;
 import com.community.entity.po.ApplicationForm;
 import com.community.entity.po.ResidentInfo;
@@ -16,7 +18,7 @@ import com.community.service.TemporaryAttachmentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
@@ -45,19 +47,19 @@ public class PublicApplyController {
     @Autowired
     private TemporaryAttachmentService temporaryAttachmentService;
 
-    @Value("${app.public.apply-phone-limit-per-hour}")
-    private int applyPhoneLimit;
+    @Autowired
+    private ClientAddress clientAddress;
 
-    @Value("${app.public.apply-ip-limit-per-hour}")
-    private int applyIpLimit;
+    @Autowired
+    private PublicLimits publicLimits;
 
     @Operation(summary = "居民公开提交申请")
     @PostMapping("/public")
     @Transactional
     public Result<PublicApplyResultVO> publicSubmit(@Valid @RequestBody PublicApplyDTO dto,
                                                      HttpServletRequest request) {
-        publicRateLimitService.check("public-apply-phone", dto.getPhone(), applyPhoneLimit, 3600);
-        publicRateLimitService.check("public-apply-ip", clientIp(request), applyIpLimit, 3600);
+        publicRateLimitService.check("public-apply-phone", dto.getPhone(), publicLimits.applyPhoneLimit(), 3600);
+        publicRateLimitService.check("public-apply-ip", clientAddress.resolve(request), publicLimits.applyIpLimit(), 3600);
         Long serviceItemId;
         try {
             serviceItemId = Long.valueOf(dto.getServiceItemId());
@@ -116,8 +118,4 @@ public class PublicApplyController {
         return attachments.stream().map(path -> "\"" + path + "\"").collect(java.util.stream.Collectors.joining(",", "[", "]"));
     }
 
-    private String clientIp(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        return forwarded == null || forwarded.isBlank() ? request.getRemoteAddr() : forwarded.split(",")[0].trim();
-    }
 }

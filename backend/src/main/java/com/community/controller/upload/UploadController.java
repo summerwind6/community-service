@@ -2,6 +2,8 @@ package com.community.controller.upload;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.community.common.Result;
+import com.community.config.ClientAddress;
+import com.community.config.PublicLimits;
 import com.community.entity.po.ApplicationForm;
 import com.community.entity.vo.AttachmentVO;
 import com.community.mapper.ApplicationFormMapper;
@@ -51,8 +53,11 @@ public class UploadController {
     @Autowired
     private TemporaryAttachmentService temporaryAttachmentService;
 
-    @Value("${app.public.upload-ip-limit-per-minute}")
-    private int publicUploadIpLimit;
+    @Autowired
+    private ClientAddress clientAddress;
+
+    @Autowired
+    private PublicLimits publicLimits;
 
     @Operation(summary = "上传附件")
     @PostMapping
@@ -64,7 +69,7 @@ public class UploadController {
     @Operation(summary = "公开申请临时附件上传")
     @PostMapping("/public")
     public Result<String> uploadPublic(@RequestParam("file") MultipartFile file, HttpServletRequest request) throws IOException {
-        publicRateLimitService.check("public-upload-ip", clientIp(request), publicUploadIpLimit, 60);
+        publicRateLimitService.check("public-upload-ip", clientAddress.resolve(request), publicLimits.publicUploadIpLimit(), 60);
         String storedPath = FileUtils.saveUploadFile(file, uploadDir);
         String filename = storedPath.substring(storedPath.lastIndexOf('/') + 1);
         return Result.success("/upload/temp/" + temporaryAttachmentService.create(filename));
@@ -112,8 +117,4 @@ public class UploadController {
         return sysUserService.getUserInfoByUsername(ShiroUtils.getCurrentUsername());
     }
 
-    private String clientIp(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        return forwarded == null || forwarded.isBlank() ? request.getRemoteAddr() : forwarded.split(",")[0].trim();
-    }
 }

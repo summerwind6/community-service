@@ -1,100 +1,71 @@
 # 社区便民服务申请与进度管理系统
 
-面向社区服务事项的申请、审核、进度查询与统计管理系统。项目采用前后端分离架构：后端为 Spring Boot，前端为 Vue 3。
+居民可公开提交申请、上传材料、查询进度和评价服务。社区与街道工作人员通过后台维护服务事项与办事指南、处理申请和审核通知。
 
-## 功能概览
+## 架构与功能
 
-- 居民、服务事项、申请单及审核记录管理
-- 居民公开申请、进度查询、材料上传与服务评价
-- 预约、通知、办事指南、超时预警和数据报表
-- RBAC 权限管理、系统配置和在线会话管理
-
-## 技术栈
-
-| 模块 | 技术 |
+| 模块 | 职责 |
 | --- | --- |
-| 后端 | Java 17、Spring Boot 3.2、MyBatis-Plus、Shiro、MySQL 8、Redis |
-| 前端 | Vue 3、Vite、Element Plus、Pinia、ECharts |
+| 前端 | Vue 3 与 Element Plus。提供居民办事入口、审核后台、预约管理和 Excel 报表 |
+| 网关 | Spring Cloud Gateway 根据 Nacos 注册的服务名路由，保留前端的 `/api` 接口 |
+| 核心服务 | Spring Boot 3.2.5、Shiro 和 MyBatis-Plus。负责权限、申请审核、实时进度、附件与通知，并用 Redis 缓存启用事项列表 |
+| 指南服务 | 维护、发布并缓存公开指南，支持双实例部署 |
+| 审核通知 | 审核和 Outbox 事件在同一个 MySQL 事务内提交。Kafka 异步投递，通知按事件 ID 去重 |
 
-## 目录说明
+## 本地演示
 
-```text
-backend/     后端服务
-frontend/    前端应用
-sql/         数据库初始化、升级和管理员创建脚本
-docs/        接口测试、协作规范和功能分工设计
+需要 Docker Engine 和 Docker Compose v2。复制 `.env.example` 为 `.env`，填入独立的随机密码和服务凭据，JWT 密钥至少 32 字节。
+
+```powershell
+Copy-Item .env.example .env
+# 填写 .env 后启动
+docker compose up -d --build --wait
+docker compose ps
 ```
 
-## 快速启动
+- 前端入口 `http://localhost:3000`，居民申请页 `http://localhost:3000/resident/apply`。
+- 网关 API 入口 `http://localhost:8080/api`。开发时可在 `frontend` 运行 `npm ci` 和 `npm run dev`，Vite 默认代理到此网关。
+- MySQL、Redis、Nacos、Kafka、核心服务及两台指南实例通过 Compose 网络访问。Nacos 演示命名空间为 `community-demo`。
 
-### 1. 环境要求
+创建管理员时，复制 `sql/create_admin.example.sql` 为 `sql/create_admin.local.sql`，替换用户名和密码后，从 PowerShell 导入。
 
-- JDK 17+、Maven 3.8+
-- MySQL 8.0+
-- Redis（后端会话存储）
-- Node.js 18+
-
-### 2. 初始化数据库
-
-新部署时执行完整初始化脚本。该脚本会重建 `community_service` 中的业务表，请勿用于已有数据的数据库。
-
-```bash
-mysql -u root -p < sql/init.sql
+```powershell
+Get-Content -Raw -Encoding UTF8 sql/create_admin.local.sql |
+  docker compose exec -T mysql sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql -uroot community_service'
 ```
 
-初始化脚本不包含可登录的默认管理员。复制 `sql/create_admin.example.sql` 为本地文件，替换用户名和强密码占位符后执行：
+## 开发构建
 
 ```bash
-mysql -u root -p community_service < sql/create_admin.local.sql
-```
-
-已有旧数据库请先备份，再执行一次升级脚本：
-
-```bash
-mysql -u root -p community_service < sql/upgrade_20260809.sql
-```
-
-### 3. 启动后端
-
-复制 `backend/src/main/resources/application-local.example.yml` 为 `application-local.yml`，填写数据库密码、Redis 密码（如有）和至少 32 字节的 JWT 密钥。该本地文件已被 Git 忽略。
-
-```bash
-cd backend
-mvn spring-boot:run
-```
-
-后端默认地址：`http://localhost:8080/api`
-
-Swagger：`http://localhost:8080/api/swagger-ui.html`
-
-### 4. 启动前端
-
-```bash
+mvn clean package
 cd frontend
-npm install
-npm run dev
+npm ci
+npm run build
 ```
 
-前端默认地址：`http://localhost:3000`；居民办事入口：`http://localhost:3000/resident/apply`。
+后端需要 JDK 17 和 Maven 3.8 或以上。前端构建和演示统一使用 Node.js 22。三个可执行 JAR 分别位于 `backend/target`、`community-guide/target` 和 `community-gateway/target`。本地直接启动各 JAR 时，按服务的 `application.yml` 注入环境变量，依次启动 Nacos、MySQL、Redis、Kafka、核心、指南和网关。
 
-## 数据库脚本说明
-
-| 文件 | 用途 |
+| 目录 | 职责 |
 | --- | --- |
-| `sql/init.sql` | 新环境完整初始化：建库、建表、基础角色、权限、服务事项和系统配置 |
-| `sql/create_admin.example.sql` | 创建独立超级管理员的模板；请复制并替换占位符后执行 |
-| `sql/upgrade_20260809.sql` | 旧数据库升级到当前结构；包含预警字段、权限修复和旧演示账号禁用 |
+| `backend` | 核心服务，负责 Shiro 权限、申请审核、实时进度、附件和通知 |
+| `community-guide` | 办事指南维护、公开查询和 Redis 列表缓存 |
+| `community-gateway` | Spring Cloud Gateway，按 Nacos 服务名路由 |
+| `community-shared` | 接口数据结构、请求追踪和列表缓存 |
+| `deploy` | 演示配置、探测脚本和服务初始化 |
+| `sql` | 数据库初始化、增量迁移和管理员模板 |
 
-## 文档
+## 测试与验收
 
-| 文档 | 说明 |
-| --- | --- |
-| `docs/API测试用例.md` | 接口联调与验收用例 |
-| `docs/TEAM_COLLABORATION_GUIDE.md` | 团队协作与提交规范 |
-| `docs/新增功能设计文档.md` | 新增功能说明与成员分工 |
+- 在项目根目录执行 `mvn test` 运行后端测试。
+- 启动独立演示环境并创建测试管理员后，按[业务回归步骤](docs/升级部署与验收.md#重跑业务回归)运行 `node --test deploy/regression.mjs`。脚本会创建测试申请、评价、预约和通知。
+- 提交前通过了 9 项 Maven 测试、8 组业务回归和前端生产构建。无头 Chrome 验证了登录、居民入口和 19 个后台页面。
+- 本地联调中，公开指南在 20 并发下的 MySQL 查询次数从原版 20 次降到冷缓存 1 次、热缓存 0 次。双实例下线切换、Redis 故障和 Kafka 停机补发的步骤与结果见[部署验收与故障恢复](docs/升级部署与验收.md)。
 
-## 开发约定
+## 已有数据库升级
 
-- 不要提交 `application-local.yml`、真实密码、JWT 密钥或本地创建的管理员脚本。
-- 数据库结构变更应提供独立升级脚本，并在合并前同步给团队成员。
-- 提交前至少执行后端测试和前端构建：`mvn test`、`npm run build`。
+先备份数据库。旧环境如果尚未执行 [2026-08-09 迁移](sql/upgrade_20260809.sql)，先执行该脚本，再执行一次 [2026-11-10 迁移](sql/upgrade_20261110.sql)。后者新增审核 Outbox 与通知来源事件唯一索引。
+
+新环境由 Compose 初始化数据库，或使用 `sql/init.sql` 手工建库。该脚本会重建业务表。已有环境完成迁移后，为指南账号授予 `guide` 表读写权限，为核心账号授予其余业务表读写权限，并在同一切换窗口迁移指南读写流量。部署凭据通过环境变量注入。
+
+- [架构优化与微服务升级方案](docs/架构优化与微服务升级方案.md)
+- [部署验收与故障恢复](docs/升级部署与验收.md)
